@@ -1,0 +1,8 @@
+logs
+*.log
+
+server/config/database.js
+
+node_modules
+dist
+!dist/index.html
