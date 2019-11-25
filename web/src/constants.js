@@ -1,2 +1,2 @@
-export const SCALE = 4;
-export const SIZE = 16 * SCALE;
+export const SCALE = 4; // SCALE OF GAME
+export const SIZE = 16 * SCALE; // SIZE OF BLOCK

@@ -1,9 +1,9 @@
 import Vector from "./vector";
 import marioImg from "./assets/mario.png";
 import { collide } from "./physics";
-import { SCALE } from "./constants";
+import { SCALE, SIZE } from "./constants";
 
-const SPEED = 0.5;
+const SPEED = 0.0078125;
 const DUCKED_SIZE = 1;
 
 class Mario {
@@ -11,7 +11,7 @@ class Mario {
     this.sk = sk;
     this.map = map;
     this.marioImg = sk.loadImage(marioImg);
-    this.pos = new Vector(0, 500);
+    this.pos = new Vector(0, 0);
     this.marioJumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
     this.ducked = false;
@@ -22,13 +22,13 @@ class Mario {
       // LEFT
       const nextPos = this.pos.sub(SPEED * deltaTime, 0);
       const collision = collide(
-        nextPos.div(16 * SCALE),
+        nextPos,
         this.map,
         this.ducked ? DUCKED_SIZE : 1.5
       );
       if (collision) {
-        const realPos = collision.mul(16 * SCALE);
-        this.pos.x = realPos.x + 16 * SCALE;
+        const realPos = collision;
+        this.pos.x = realPos.x + 1 ;
       } else {
         this.pos = nextPos;
       }
@@ -37,39 +37,35 @@ class Mario {
       // RIGHT
       const nextPos = this.pos.add(SPEED * deltaTime, 0);
       const collision = collide(
-        nextPos.div(16 * SCALE),
+        nextPos,
         this.map,
         this.ducked ? DUCKED_SIZE : 1.5
       );
       if (collision) {
-        const realPos = collision.mul(16 * SCALE);
-        this.pos.x = realPos.x - 16 * SCALE;
+        const realPos = collision;
+        this.pos.x = realPos.x - 1;
       } else {
         this.pos = nextPos;
       }
     }
     if (this.sk.keyIsDown(32) && !this.jumpBlocked) {
       // SPACE
-      this.marioJumpForce = new Vector(0, 10);
+      this.marioJumpForce = new Vector(0, 0.15625);
       this.jumpBlocked = true;
     }
     if (this.sk.keyIsDown(16)) {
       this.ducked = true;
-      this.pos = this.pos.add(0, 0.5 * SCALE * 16);
+      this.pos = this.pos.add(0, 0.5);
     } else {
-      this.ducked = false;
-      const nextPos = this.pos.sub(0, 0.5 * SCALE * 16);
+      this.ducked = false
+      const nextPos = this.pos.sub(0, 0.5);
       const collision = collide(
-        nextPos.div(16 * SCALE),
+        nextPos,
         this.map,
         this.ducked ? DUCKED_SIZE : 1.5
       );
       if (collision) {
-        // const realPos = collision.mul(16 * SCALE);
-        // this.pos.x = realPos.x - 16 * SCALE;
-        console.log("fuck");
-      } else {
-        // this.pos = nextPos;
+        this.ducked = true;
       }
     }
   }
@@ -77,21 +73,18 @@ class Mario {
   update(deltaTime) {
     const nextPos = this.pos.subV(this.marioJumpForce);
     const collision = collide(
-      nextPos.div(16 * SCALE),
+      nextPos,
       this.map,
       this.ducked ? DUCKED_SIZE : 1.5
     );
     if (collision) {
-      const realPos = collision.mul(16 * SCALE);
-      this.pos.y = realPos.y - 16 * SCALE * (this.ducked ? DUCKED_SIZE : 1.5);
-    } else {
-      this.pos = nextPos;
-    }
-
-    this.marioJumpForce = this.marioJumpForce.sub(0, 0.035 * deltaTime);
-    if (collision) {
+      const realPos = collision;
+      this.pos.y = realPos.y - (this.ducked ? DUCKED_SIZE : 1.5);
       this.jumpBlocked = false;
       this.marioJumpForce = new Vector(0, 0);
+    } else {
+      this.marioJumpForce = this.marioJumpForce.sub(0, 0.000546875 * deltaTime);
+      this.pos = nextPos;
     }
 
     if (this.pos.y > 2000) {
@@ -106,10 +99,10 @@ class Mario {
   draw() {
     this.sk.image(
       this.marioImg,
-      this.pos.x,
-      this.pos.y,
-      16 * SCALE,
-      16 * SCALE * (this.ducked ? DUCKED_SIZE : 1.5)
+      this.pos.x * SIZE,
+      this.pos.y * SIZE,
+      SIZE,
+      SIZE * (this.ducked ? DUCKED_SIZE : 1.5)
     );
   }
 }

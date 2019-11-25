@@ -61,8 +61,8 @@ export function input(deltaTime) {
 function centerCamera() {
   camera.set(
     mario.pos
-      .mul(-1)
-      .sub(16 * SCALE * 0.5, 16 * SCALE * 1.5 * 0.5)
+      .mul(-SIZE)
+      .sub(16 * 0.5, 16 * 1.5 * 0.5)
       .add(sk.windowWidth / 2, sk.windowHeight / 2)
   );
 }
