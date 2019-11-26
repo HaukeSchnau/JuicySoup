@@ -62,7 +62,7 @@ function centerCamera() {
   camera.set(
     mario.pos
       .mul(-SIZE)
-      .sub(16 * 0.5, 16 * 1.5 * 0.5)
+      .sub(SIZE / 2, (SIZE * 1.5) / 2 + (mario.ducked ? -SIZE * 0.5 : 0))
       .add(sk.windowWidth / 2, sk.windowHeight / 2)
   );
 }
@@ -94,10 +94,10 @@ export function mouseWheel(e) {
   if (editing) {
     if (sk.keyIsDown(17)) {
       // 17 for CTRL
-      camera.move(-e.delta, 0);
+      camera.move(-e.delta * 10, 0);
       e.preventDefault();
     } else {
-      camera.move(0, -e.delta);
+      camera.move(0, -e.delta * 10);
     }
   }
 }
@@ -123,4 +123,11 @@ export function draw() {
   camera.unbind();
   switchEditingButton.draw();
   saveButton.draw();
+
+  // Debug Hilfslinien
+  /*
+  sk.stroke("#f00");
+  sk.line(0, sk.windowHeight / 2, sk.windowWidth, sk.windowHeight / 2);
+  sk.line(sk.windowWidth / 2, 0, sk.windowWidth / 2, sk.windowHeight);
+  */
 }

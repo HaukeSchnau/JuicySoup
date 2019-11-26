@@ -17,6 +17,10 @@ class Mario {
     this.ducked = false;
   }
 
+  get height() {
+    return this.ducked ? DUCKED_SIZE : 1.5;
+  }
+
   input(deltaTime) {
     if (this.sk.keyIsDown(65)) {
       // LEFT
@@ -24,7 +28,7 @@ class Mario {
       const collision = collide(
         nextPos,
         this.map,
-        this.ducked ? DUCKED_SIZE : 1.5
+        this.height
       );
       if (collision) {
         this.pos.x = collision.x + 1;
@@ -38,7 +42,7 @@ class Mario {
       const collision = collide(
         nextPos,
         this.map,
-        this.ducked ? DUCKED_SIZE : 1.5
+        this.height
       );
       if (collision) {
         this.pos.x = collision.x - 1;
@@ -51,19 +55,18 @@ class Mario {
       this.marioJumpForce = new Vector(0, 0.15625);
     }
     if (this.sk.keyIsDown(16)) {
+      if (!this.ducked) this.pos = this.pos.add(0, 0.5);
       this.ducked = true;
-      this.pos = this.pos.add(0, 0.5);
     } else {
       if (this.ducked) {
-        this.ducked = false;
         const nextPos = this.pos.sub(0, 0.5);
         const collision = collide(
           nextPos,
           this.map,
-          this.ducked ? DUCKED_SIZE : 1.5
+          this.height
         );
-        if (collision) {
-          this.ducked = true;
+        if (!collision) {
+          this.ducked = false;
         }
       }
     }
@@ -74,7 +77,7 @@ class Mario {
     const collision = collide(
       nextPos,
       this.map,
-      this.ducked ? DUCKED_SIZE : 1.5
+      this.height
     );
     if (collision) {
       const headCollision = collision.subV(this.pos).y < 0;
@@ -82,7 +85,7 @@ class Mario {
       if (headCollision) {
         this.pos.y = collision.y + 1;
       } else {
-        this.pos.y = collision.y - (this.ducked ? DUCKED_SIZE : 1.5);
+        this.pos.y = collision.y - this.height;
         this.jumpBlocked = false;
       }
       this.marioJumpForce = new Vector(0, 0);
@@ -107,7 +110,7 @@ class Mario {
       this.pos.x * SIZE,
       this.pos.y * SIZE,
       SIZE,
-      SIZE * (this.ducked ? DUCKED_SIZE : 1.5)
+      SIZE * this.height
     );
   }
 }
