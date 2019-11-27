@@ -15,9 +15,15 @@ class Monster {
     this.jumpBlocked = false;
     this.height = 1;
     this.speed = 0.002;
+    this.direction = "left";
   }
 
   walk(distance) {
+    if (distance < 0) {
+      this.direction = "left";
+    } else {
+      this.direction = "right";
+    }
     const nextPos = this.pos.add(distance, 0);
     const collision = collide(nextPos, this.map, this.height);
     if (collision) {
@@ -59,13 +65,19 @@ class Monster {
   }
 
   draw() {
-    this.sk.image(
-      this.sprites[this.currentSprite],
-      this.pos.x * SIZE,
-      this.pos.y * SIZE,
-      SIZE,
-      SIZE
-    );
+    let x = this.pos.x * SIZE;
+    let y = this.pos.y * SIZE;
+    let width = SIZE;
+    let height = SIZE;
+
+    this.sk.push();
+    if (this.direction === "right") {
+      this.sk.scale(-1, 1);
+      x = -x - SIZE;
+    }
+
+    this.sk.image(this.sprites[this.currentSprite], x, y, width, height);
+    this.sk.pop();
   }
 }
 

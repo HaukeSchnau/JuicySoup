@@ -12,6 +12,7 @@ class Mario {
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
     this.ducked = false;
+    this.direction = "right";
   }
 
   get height() {
@@ -25,6 +26,7 @@ class Mario {
   input(deltaTime) {
     if (this.sk.keyIsDown(65)) {
       // LEFT
+      this.direction = "left";
       const nextPos = this.pos.sub(this.speed * deltaTime, 0);
       const collision = collide(nextPos, this.map, this.height);
       if (collision) {
@@ -35,6 +37,7 @@ class Mario {
     }
     if (this.sk.keyIsDown(68)) {
       // RIGHT
+      this.direction = "right";
       const nextPos = this.pos.add(this.speed * deltaTime, 0);
       const collision = collide(nextPos, this.map, this.height);
       if (collision) {
@@ -90,13 +93,19 @@ class Mario {
   }
 
   draw() {
-    this.sk.image(
-      this.marioImg,
-      this.pos.x * SIZE,
-      this.pos.y * SIZE,
-      SIZE,
-      SIZE * this.height
-    );
+    let x = this.pos.x * SIZE;
+    let y = this.pos.y * SIZE;
+    let width = SIZE;
+    let height = SIZE * this.height;
+
+    this.sk.push();
+    if (this.direction === "right") {
+      this.sk.scale(-1, 1);
+      x = -x - SIZE;
+    }
+
+    this.sk.image(this.marioImg, x, y, width, height);
+    this.sk.pop();
   }
 }
 
