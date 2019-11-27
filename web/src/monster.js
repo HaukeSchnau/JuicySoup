@@ -70,14 +70,12 @@ class Monster {
     let width = SIZE;
     let height = SIZE;
 
-    this.sk.push();
     if (this.direction === "right") {
       this.sk.scale(-1, 1);
       x = -x - SIZE;
     }
 
     this.sk.image(this.sprites[this.currentSprite], x, y, width, height);
-    this.sk.pop();
   }
 }
 

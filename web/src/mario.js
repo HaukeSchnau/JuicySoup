@@ -98,14 +98,12 @@ class Mario {
     let width = SIZE;
     let height = SIZE * this.height;
 
-    this.sk.push();
     if (this.direction === "right") {
       this.sk.scale(-1, 1);
       x = -x - SIZE;
     }
 
     this.sk.image(this.marioImg, x, y, width, height);
-    this.sk.pop();
   }
 }
 
