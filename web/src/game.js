@@ -1,5 +1,6 @@
 import Vector from "./vector";
 import Mario from "./mario";
+import Monster from "./monster";
 import Camera from "./camera";
 import GameMap from "./map";
 import Button from "./button";
@@ -9,6 +10,7 @@ const BG = "#254152";
 let gameObjects = [];
 let sk;
 let mario;
+let goomba;
 let camera;
 let map;
 let editing = false;
@@ -19,6 +21,7 @@ export function init(sketch) {
   camera = new Camera(sk);
   map = new GameMap(sk);
   mario = new Mario(sk, map);
+  goomba = new Monster(sk, map);
   switchEditingButton = new Button(
     sk,
     10,
@@ -70,6 +73,7 @@ function centerCamera() {
 export function update(deltaTime) {
   if (!editing) {
     mario.update(deltaTime);
+    goomba.update(deltaTime);
     centerCamera();
   }
 }
@@ -108,6 +112,7 @@ export function draw() {
   sk.background(BG);
   map.draw();
   mario.draw();
+  goomba.draw();
 
   if (editing) {
     const gridX = Math.floor((sk.mouseX - camera.pos.x) / (16 * SCALE));
