@@ -1,5 +1,6 @@
 import ground from "./assets/ground.png";
 import ground2 from "./assets/ground2.png";
+import bg from "./assets/bg1.jpg";
 import { SIZE } from "./constants";
 import Vector from "./vector";
 
@@ -10,6 +11,7 @@ class GameMap {
     this.tiles = [];
     this.tiles[1] = sk.loadImage(ground);
     this.tiles[2] = sk.loadImage(ground2);
+    this.bg = sk.loadImage(bg);
 
     fetch("/api/map")
       .then(res => res.json())
@@ -29,6 +31,10 @@ class GameMap {
     const chunkY = y - chunk.y * 16;
     const index = chunkX + chunkY * 16;
     chunk.data[index] = tileId;
+  }
+
+  drawBackground() {
+    this.sk.image(this.bg, 0, 0, this.sk.windowWidth, this.sk.windowHeight);
   }
 
   draw() {

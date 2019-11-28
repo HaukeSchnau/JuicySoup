@@ -164,9 +164,9 @@ export function mouseWheel(e) {
 }
 
 export function draw() {
-  camera.bind();
-
   sk.background(BG);
+  map.drawBackground();
+  camera.bind();
   map.draw();
   gameObjects.forEach(obj => {
     sk.push();
