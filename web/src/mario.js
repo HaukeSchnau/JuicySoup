@@ -13,6 +13,8 @@ class Mario {
     this.jumpBlocked = false;
     this.ducked = false;
     this.direction = "right";
+    this.maxHealth = 100;
+    this.currentHealth = 69;
   }
 
   get height() {
@@ -98,12 +100,37 @@ class Mario {
     let width = SIZE;
     let height = SIZE * this.height;
 
+    this.sk.push();
     if (this.direction === "right") {
       this.sk.scale(-1, 1);
       x = -x - SIZE;
     }
 
     this.sk.image(this.marioImg, x, y, width, height);
+    this.sk.pop();
+    const healthBarWidth = 150;
+    const healthBarHeight = 20;
+    this.sk.fill("#ff0000");
+    this.sk.rect(
+      this.pos.x * SIZE - healthBarWidth / 2 + SIZE / 2,
+      this.pos.y * SIZE - healthBarHeight,
+      healthBarWidth,
+      healthBarHeight
+    );
+    this.sk.fill("#00ff3e");
+    this.sk.rect(
+      this.pos.x * SIZE - healthBarWidth / 2 + SIZE / 2,
+      this.pos.y * SIZE - healthBarHeight,
+      healthBarWidth * (this.currentHealth / this.maxHealth),
+      healthBarHeight
+    );
+    this.sk.textAlign(this.sk.CENTER);
+    this.sk.fill("#000");
+    this.sk.text(
+      this.currentHealth + " HP",
+      this.pos.x * SIZE + SIZE / 2,
+      this.pos.y * SIZE - healthBarHeight + healthBarHeight / 2
+    );
   }
 }
 

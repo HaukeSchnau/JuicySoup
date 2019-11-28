@@ -6,6 +6,7 @@ class Camera {
   constructor(sk) {
     this.sk = sk;
     this.pos = new Vector(0, 0);
+    this.isBound = false;
   }
 
   input(deltaTime) {
@@ -44,11 +45,17 @@ class Camera {
   }
 
   bind() {
-    this.sk.translate(this.pos.x, this.pos.y);
+    if (!this.isBound) {
+      this.sk.translate(this.pos.x, this.pos.y);
+      this.isBound = true;
+    }
   }
 
   unbind() {
-    this.sk.translate(-this.pos.x, -this.pos.y);
+    if (this.isBound) {
+      this.sk.translate(-this.pos.x, -this.pos.y);
+      this.isBound = false;
+    }
   }
 }
 
