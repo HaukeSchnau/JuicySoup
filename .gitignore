@@ -6,3 +6,10 @@ server/config/database.js
 node_modules
 dist
 !dist/index.html
+
+## LaTeX
+*.aux
+*.fdb_latexmk
+*.fls
+*.synctex.gz
+*.toc
