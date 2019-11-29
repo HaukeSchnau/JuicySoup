@@ -4,6 +4,7 @@ import Camera from "./camera";
 import GameMap from "./map";
 import Button from "./button";
 import { SCALE, SIZE } from "./constants";
+import tigerImg from "./assets/tiger.png";
 
 const BG = "#254152";
 let gameObjects = [];
@@ -12,15 +13,23 @@ let mario;
 let camera;
 let map;
 let editing = false;
-let switchEditingButton, saveButton;
+let switchEditingButton, saveButton, respawnButton;
 let selectedBlock = 1;
+let showDeathScreen = false;
+
+export function setShowDeathScreen(val) {
+  showDeathScreen = val;
+}
 
 export function init(sketch) {
   sk = sketch;
   camera = new Camera(sk);
   map = new GameMap(sk);
   mario = new Mario(sk, map);
-  gameObjects = [mario, new Monster(sk, map)];
+  gameObjects = [
+    mario,
+    new Monster(sk, map, [sk.loadImage(tigerImg)], 2, 1.5, mario)
+  ];
   switchEditingButton = new Button(
     sk,
     10,
@@ -51,6 +60,19 @@ export function init(sketch) {
         }
       });
   });
+  respawnButton = new Button(
+    sk,
+    sk.windowWidth / 2 - 200 / 2,
+    sk.windowHeight / 2,
+    200,
+    50,
+    "Respawn",
+    () => {
+      showDeathScreen = false;
+      setShowDeathScreen(false);
+      mario.respawn();
+    }
+  );
 }
 
 function getBlockBar() {
@@ -84,7 +106,8 @@ function getBlockBar() {
 export function input(deltaTime) {
   switchEditingButton.input();
   saveButton.input();
-  if (!editing) {
+  respawnButton.input();
+  if (!editing && !showDeathScreen) {
     gameObjects.forEach(obj => obj.input && obj.input(deltaTime));
   } else camera.input(deltaTime);
 }
@@ -99,7 +122,7 @@ function centerCamera() {
 }
 
 export function update(deltaTime) {
-  if (!editing) {
+  if (!editing && !showDeathScreen) {
     gameObjects.forEach(obj => obj.update(deltaTime));
     centerCamera();
   }
@@ -167,7 +190,7 @@ export function draw() {
   sk.background(BG);
   map.drawBackground();
   camera.bind();
-  map.draw();
+  map.draw(camera);
   gameObjects.forEach(obj => {
     sk.push();
     obj.draw();
@@ -246,6 +269,21 @@ export function draw() {
   sk.fill("#fff");
   sk.text(Math.round(sk.frameRate()) + " fps", sk.windowWidth - 100, 50);
   sk.pop();
+
+  if (showDeathScreen) {
+    sk.fill(0, 0, 0, 200);
+    sk.rect(0, 0, sk.windowWidth, sk.windowHeight);
+
+    sk.push();
+    sk.textAlign(sk.CENTER);
+    sk.stroke("#000");
+    sk.strokeWeight(5);
+    sk.fill("#fff");
+    sk.textSize(50);
+    sk.text("Du bist blöd", sk.windowWidth / 2, sk.windowHeight / 2 - 50);
+    sk.pop();
+    respawnButton.draw();
+  }
 
   // Debug Hilfslinien
   /*

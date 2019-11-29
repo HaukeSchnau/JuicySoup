@@ -1,21 +1,22 @@
 import Vector from "./vector";
-import goombaImg1 from "./assets/goomba1.png";
-import goombaImg2 from "./assets/goomba2.png";
-import { collide } from "./physics";
+import tigerImg from "./assets/tiger.png";
+import { collide, entyscollide } from "./physics";
 import { SCALE, SIZE } from "./constants";
 
 class Monster {
-  constructor(sk, map) {
+  constructor(sk, map, sprites, width, height, mario) {
     this.sk = sk;
     this.map = map;
-    this.sprites = [sk.loadImage(goombaImg1), sk.loadImage(goombaImg2)];
+    this.sprites = sprites;
     this.currentSprite = 0;
     this.pos = new Vector(0, 0);
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
-    this.height = 1;
+    this.height = height;
+    this.width = width;
     this.speed = 0.002;
     this.direction = "left";
+    this.mario = mario;
   }
 
   walk(distance) {
@@ -25,13 +26,13 @@ class Monster {
       this.direction = "right";
     }
     const nextPos = this.pos.add(distance, 0);
-    const collision = collide(nextPos, this.map, this.height);
+    const collision = collide(nextPos, this.map, this.width, this.height);
     if (collision) {
       this.speed *= -1;
 
       const leftCollision = collision.subV(this.pos).x < 0;
       if (leftCollision) this.pos.x = collision.x + 1;
-      else this.pos.x = collision.x - 1;
+      else this.pos.x = collision.x - this.width;
     } else {
       this.pos = nextPos;
     }
@@ -42,11 +43,25 @@ class Monster {
       this.currentSprite++;
       if (this.currentSprite >= this.sprites.length) this.currentSprite = 0;
     }
+    if (
+      entyscollide(
+        this.pos.x,
+        this.pos.y,
+        this.width,
+        this.height,
+        this.mario.pos.x,
+        this.mario.pos.y,
+        this.mario.width,
+        this.mario.height
+      )
+    ) {
+      this.mario.currentHealth -= 5;
+    }
 
     this.walk(this.speed * deltaTime);
 
     const nextPos = this.pos.subV(this.jumpForce);
-    const collision = collide(nextPos, this.map, this.height);
+    const collision = collide(nextPos, this.map, this.width, this.height);
     if (collision) {
       const headCollision = collision.subV(this.pos).y < 0;
 
@@ -67,12 +82,12 @@ class Monster {
   draw() {
     let x = this.pos.x * SIZE;
     let y = this.pos.y * SIZE;
-    let width = SIZE;
-    let height = SIZE;
+    let width = SIZE * this.width;
+    let height = SIZE * this.height;
 
     if (this.direction === "right") {
       this.sk.scale(-1, 1);
-      x = -x - SIZE;
+      x = -x - SIZE * this.width;
     }
 
     this.sk.image(this.sprites[this.currentSprite], x, y, width, height);

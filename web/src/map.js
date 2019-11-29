@@ -1,5 +1,6 @@
 import ground from "./assets/ground.png";
 import ground2 from "./assets/ground2.png";
+import rocks from "./assets/rocks.png";
 import bg from "./assets/bg1.jpg";
 import { SIZE } from "./constants";
 import Vector from "./vector";
@@ -11,6 +12,7 @@ class GameMap {
     this.tiles = [];
     this.tiles[1] = sk.loadImage(ground);
     this.tiles[2] = sk.loadImage(ground2);
+    this.tiles[3] = sk.loadImage(rocks);
     this.bg = sk.loadImage(bg);
 
     fetch("/api/map")
@@ -37,13 +39,20 @@ class GameMap {
     this.sk.image(this.bg, 0, 0, this.sk.windowWidth, this.sk.windowHeight);
   }
 
-  draw() {
+  draw(camera) {
     this.chunks.forEach(chunk => {
       const chunkPos = new Vector(chunk.x, chunk.y).mul(16);
       chunk.data.forEach((tile, i) => {
         if (!tile) return;
         const y = Math.floor(i / 16);
         const x = i - y * 16;
+        if (
+          (x + chunkPos.x + 1) * SIZE < -camera.pos.x ||
+          (y + chunkPos.y + 1) * SIZE < -camera.pos.y ||
+          (x + chunkPos.x) * SIZE > -camera.pos.x + this.sk.windowWidth ||
+          (y + chunkPos.y) * SIZE > -camera.pos.y + this.sk.windowHeight
+        )
+          return;
 
         this.sk.image(
           this.tiles[tile],

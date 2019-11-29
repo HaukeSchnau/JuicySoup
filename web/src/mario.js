@@ -2,19 +2,26 @@ import Vector from "./vector";
 import marioImg from "./assets/mario.png";
 import { collide } from "./physics";
 import { SCALE, SIZE } from "./constants";
+import * as Game from "./game";
+
+const startPos = new Vector(-7, 0);
 
 class Mario {
   constructor(sk, map) {
     this.sk = sk;
     this.map = map;
     this.marioImg = sk.loadImage(marioImg);
-    this.pos = new Vector(0, 0);
+    this.pos = startPos.copy();
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
     this.ducked = false;
     this.direction = "right";
     this.maxHealth = 100;
-    this.currentHealth = 69;
+    this.currentHealth = this.maxHealth;
+  }
+
+  get width() {
+    return 1;
   }
 
   get height() {
@@ -30,7 +37,7 @@ class Mario {
       // LEFT
       this.direction = "left";
       const nextPos = this.pos.sub(this.speed * deltaTime, 0);
-      const collision = collide(nextPos, this.map, this.height);
+      const collision = collide(nextPos, this.map, this.width, this.height);
       if (collision) {
         this.pos.x = collision.x + 1;
       } else {
@@ -41,7 +48,7 @@ class Mario {
       // RIGHT
       this.direction = "right";
       const nextPos = this.pos.add(this.speed * deltaTime, 0);
-      const collision = collide(nextPos, this.map, this.height);
+      const collision = collide(nextPos, this.map, this.width, this.height);
       if (collision) {
         this.pos.x = collision.x - 1;
       } else {
@@ -58,7 +65,7 @@ class Mario {
     } else {
       if (this.ducked) {
         const nextPos = this.pos.sub(0, 0.5);
-        const collision = collide(nextPos, this.map, this.height);
+        const collision = collide(nextPos, this.map, this.width, this.height);
         if (!collision) {
           this.ducked = false;
         }
@@ -67,8 +74,13 @@ class Mario {
   }
 
   update(deltaTime) {
+    if (this.currentHealth <= 0) {
+      this.currentHealth = true;
+      Game.setShowDeathScreen(true);
+    }
+
     const nextPos = this.pos.subV(this.jumpForce);
-    const collision = collide(nextPos, this.map, this.height);
+    const collision = collide(nextPos, this.map, this.width, this.height);
     if (collision) {
       const headCollision = collision.subV(this.pos).y < 0;
 
@@ -86,12 +98,13 @@ class Mario {
     }
 
     if (this.pos.y > 50) {
-      this.respawn();
+      Game.setShowDeathScreen(true);
     }
   }
 
   respawn() {
-    this.pos = new Vector();
+    this.pos = startPos.copy();
+    this.currentHealth = this.maxHealth;
   }
 
   draw() {
@@ -127,7 +140,7 @@ class Mario {
     this.sk.textAlign(this.sk.CENTER);
     this.sk.fill("#000");
     this.sk.text(
-      this.currentHealth + " HP",
+      Math.round(this.currentHealth) + " HP",
       this.pos.x * SIZE + SIZE / 2,
       this.pos.y * SIZE - healthBarHeight + healthBarHeight / 2
     );

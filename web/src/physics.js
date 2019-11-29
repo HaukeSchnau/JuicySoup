@@ -1,11 +1,11 @@
 import Vector from "./vector";
 
-export function collide(convertedPos, map, height) {
-  const chunkPos = convertedPos.div(16);
+export function collide(entityPos, map, width, height) {
+  const chunkPos = entityPos.div(16);
   const chunks = map.chunks.filter(
     chunk =>
       chunkPos.x < chunk.x + 16 &&
-      chunkPos.x + 1 > chunk.x &&
+      chunkPos.x + width > chunk.x &&
       chunkPos.y < chunk.y + 16 &&
       chunkPos.y + height > chunk.y
   );
@@ -19,10 +19,10 @@ export function collide(convertedPos, map, height) {
       x += chunk.x * 16;
 
       if (
-        convertedPos.x < x + 1 &&
-        convertedPos.x + 1 > x &&
-        convertedPos.y < y + 1 &&
-        convertedPos.y + height > y
+        entityPos.x < x + 1 &&
+        entityPos.x + width > x &&
+        entityPos.y < y + 1 &&
+        entityPos.y + height > y
       ) {
         collision = new Vector(x, y);
       }
@@ -30,4 +30,8 @@ export function collide(convertedPos, map, height) {
   });
 
   return collision;
+}
+
+export function entyscollide(x1, y1, w1, h1, x2, y2, w2, h2) {
+  return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2;
 }
