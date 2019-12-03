@@ -32,6 +32,6 @@ export function collide(entityPos, map, width, height) {
   return collision;
 }
 
-export function entyscollide(x1, y1, w1, h1, x2, y2, w2, h2) {
-  return x1 < x2 + w2 && x1 + w1 > x2 && y1 < y2 + h2 && y1 + h1 > y2;
+export function entitiesCollide(e1, e2) {
+  return e1.pos.x < e2.pos.x + e2.width && e1.pos.x + e1.width > e2.pos.x && e1.pos.y < e2.pos.y + e2.height && e1.pos.y + e1.height > e2.pos.y;
 }

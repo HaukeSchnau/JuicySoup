@@ -1,7 +1,8 @@
 import Vector from "./vector";
 import tigerImg from "./assets/tiger.png";
-import { collide, entyscollide } from "./physics";
+import { collide, entitiesCollide } from "./physics";
 import { SCALE, SIZE } from "./constants";
+import deathSound from "./assets/oof.mp3";
 
 class Monster {
   constructor(sk, map, sprites, width, height, mario) {
@@ -17,9 +18,14 @@ class Monster {
     this.speed = 0.002;
     this.direction = "left";
     this.mario = mario;
+    this.dead = false;
+
+    this.deathSound = document.createElement("audio");
   }
 
   walk(distance) {
+    if (this.dead) return;
+
     if (distance < 0) {
       this.direction = "left";
     } else {
@@ -39,23 +45,21 @@ class Monster {
   }
 
   update(deltaTime) {
+    if (this.dead) return;
+
     if (this.sk.frameCount % 15 === 0) {
       this.currentSprite++;
       if (this.currentSprite >= this.sprites.length) this.currentSprite = 0;
     }
-    if (
-      entyscollide(
-        this.pos.x,
-        this.pos.y,
-        this.width,
-        this.height,
-        this.mario.pos.x,
-        this.mario.pos.y,
-        this.mario.width,
-        this.mario.height
-      )
-    ) {
-      this.mario.currentHealth -= 5;
+    if (entitiesCollide(this, this.mario)) {
+      if (
+        this.pos.subV(this.mario.pos).y - this.mario.height > -0.09 &&
+        this.mario.jumpForce.y < 0
+      ) {
+        this.dead = true;
+      } else {
+        this.mario.currentHealth -= 2;
+      }
     }
 
     this.walk(this.speed * deltaTime);
@@ -80,6 +84,8 @@ class Monster {
   }
 
   draw() {
+    if (this.dead) return;
+
     let x = this.pos.x * SIZE;
     let y = this.pos.y * SIZE;
     let width = SIZE * this.width;

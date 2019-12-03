@@ -57,7 +57,7 @@ class Mario {
     }
     if (this.sk.keyIsDown(32) && !this.jumpBlocked) {
       // SPACE
-      this.jumpForce = new Vector(0, 0.15625);
+      this.jumpForce = new Vector(0, 0.17);
     }
     if (this.sk.keyIsDown(16)) {
       if (!this.ducked) this.pos = this.pos.add(0, 0.5);

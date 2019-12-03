@@ -5,6 +5,7 @@ import GameMap from "./map";
 import Button from "./button";
 import { SCALE, SIZE } from "./constants";
 import tigerImg from "./assets/tiger.png";
+import bgMusic from "./assets/sheeran.mp3";
 
 const BG = "#254152";
 let gameObjects = [];
@@ -28,7 +29,7 @@ export function init(sketch) {
   mario = new Mario(sk, map);
   gameObjects = [
     mario,
-    new Monster(sk, map, [sk.loadImage(tigerImg)], 2, 1.5, mario)
+    new Monster(sk, map, [sk.loadImage(tigerImg)], 2 / 1.5, 1, mario)
   ];
   switchEditingButton = new Button(
     sk,
@@ -73,6 +74,7 @@ export function init(sketch) {
       mario.respawn();
     }
   );
+  myMusik = new sound("sheeran.mp3");
 }
 
 function getBlockBar() {
@@ -106,7 +108,7 @@ function getBlockBar() {
 export function input(deltaTime) {
   switchEditingButton.input();
   saveButton.input();
-  respawnButton.input();
+  if (showDeathScreen) respawnButton.input();
   if (!editing && !showDeathScreen) {
     gameObjects.forEach(obj => obj.input && obj.input(deltaTime));
   } else camera.input(deltaTime);
@@ -280,7 +282,7 @@ export function draw() {
     sk.strokeWeight(5);
     sk.fill("#fff");
     sk.textSize(50);
-    sk.text("Du bist blöd", sk.windowWidth / 2, sk.windowHeight / 2 - 50);
+    sk.text("bruh moment", sk.windowWidth / 2, sk.windowHeight / 2 - 50);
     sk.pop();
     respawnButton.draw();
   }
@@ -292,3 +294,4 @@ export function draw() {
   sk.line(sk.windowWidth / 2, 0, sk.windowWidth / 2, sk.windowHeight);
   */
 }
+var myMusic;
