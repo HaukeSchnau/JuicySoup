@@ -3,24 +3,24 @@ import tigerImg from "./assets/tiger.png";
 import { collide, entitiesCollide } from "./physics";
 import { SCALE, SIZE } from "./constants";
 import deathSound from "./assets/oof.mp3";
+import Sound from "./sound";
+import * as Game from "./game";
 
 class Monster {
-  constructor(sk, map, sprites, width, height, mario) {
-    this.sk = sk;
+  constructor(map, sprites, x, y, width, height) {
     this.map = map;
     this.sprites = sprites;
     this.currentSprite = 0;
-    this.pos = new Vector(0, 0);
+    this.pos = new Vector(x, y);
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
     this.height = height;
     this.width = width;
     this.speed = 0.002;
     this.direction = "left";
-    this.mario = mario;
     this.dead = false;
 
-    this.deathSound = document.createElement("audio");
+    this.deathSound = new Sound(deathSound);
   }
 
   walk(distance) {
@@ -47,18 +47,20 @@ class Monster {
   update(deltaTime) {
     if (this.dead) return;
 
-    if (this.sk.frameCount % 15 === 0) {
+    if (frameCount % 15 === 0) {
       this.currentSprite++;
       if (this.currentSprite >= this.sprites.length) this.currentSprite = 0;
     }
-    if (entitiesCollide(this, this.mario)) {
+    if (entitiesCollide(this, Game.mario)) {
       if (
-        this.pos.subV(this.mario.pos).y - this.mario.height > -0.09 &&
-        this.mario.jumpForce.y < 0
+        this.pos.subV(Game.mario.pos).y - Game.mario.height > -0.2 &&
+        Game.mario.jumpForce.y < 0
       ) {
         this.dead = true;
+        Game.mario.score += 10;
+        this.deathSound.play();
       } else {
-        this.mario.currentHealth -= 2;
+        Game.mario.currentHealth -= 2;
       }
     }
 
@@ -92,11 +94,11 @@ class Monster {
     let height = SIZE * this.height;
 
     if (this.direction === "right") {
-      this.sk.scale(-1, 1);
+      scale(-1, 1);
       x = -x - SIZE * this.width;
     }
 
-    this.sk.image(this.sprites[this.currentSprite], x, y, width, height);
+    image(this.sprites[this.currentSprite], x, y, width, height);
   }
 }
 

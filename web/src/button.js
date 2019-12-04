@@ -1,8 +1,7 @@
 let buttons = [];
 
 class Button {
-  constructor(sk, x, y, width, height, text, onClick) {
-    this.sk = sk;
+  constructor(x, y, width, height, text, onClick) {
     this.x = x;
     this.y = y;
     this.text = text;
@@ -15,28 +14,28 @@ class Button {
 
   input() {
     if (
-      this.sk.mouseX >= this.x &&
-      this.sk.mouseY >= this.y &&
-      this.sk.mouseX < this.x + this.width &&
-      this.sk.mouseY < this.y + this.height
+      mouseX >= this.x &&
+      mouseY >= this.y &&
+      mouseX < this.x + this.width &&
+      mouseY < this.y + this.height
     ) {
-      if (this.sk.mouseIsPressed && !this.mouseWasPressed) {
+      if (mouseIsPressed && !this.mouseWasPressed) {
         this.onClick();
       }
     }
 
-    this.mouseWasPressed = this.sk.mouseIsPressed;
+    this.mouseWasPressed = mouseIsPressed;
   }
 
   draw() {
-    this.sk.fill("#fff");
-    this.sk.stroke("#000");
-    this.sk.strokeWeight(2);
-    this.sk.rect(this.x, this.y, this.width, this.height, 10);
-    this.sk.noStroke();
-    this.sk.textAlign(this.sk.CENTER, this.sk.CENTER);
-    this.sk.fill("#000");
-    this.sk.text(this.text, this.x + 1, this.y + 1, this.width, this.height);
+    fill("#fff");
+    stroke("#000");
+    strokeWeight(2);
+    rect(this.x, this.y, this.width, this.height, 10);
+    noStroke();
+    textAlign(CENTER, CENTER);
+    fill("#000");
+    text(this.text, this.x + 1, this.y + 1, this.width, this.height);
   }
 }
 

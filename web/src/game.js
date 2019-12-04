@@ -1,38 +1,34 @@
 import Mario from "./mario";
-import Monster from "./monster";
+import Tiger from "./tiger";
 import Camera from "./camera";
 import GameMap from "./map";
 import Button from "./button";
 import { SCALE, SIZE } from "./constants";
-import tigerImg from "./assets/tiger.png";
-import bgMusic from "./assets/sheeran.mp3";
+import bgMusicPath from "./assets/sheeran.mp3";
+import deathMusicPath from "./assets/death.mp3";
+import Sound from "./sound";
 
 const BG = "#254152";
 let gameObjects = [];
-let sk;
-let mario;
-let camera;
+export let mario;
+export let camera;
 let map;
 let editing = false;
 let switchEditingButton, saveButton, respawnButton;
 let selectedBlock = 1;
 let showDeathScreen = false;
+let bgMusic, deathMusic;
 
 export function setShowDeathScreen(val) {
   showDeathScreen = val;
 }
 
-export function init(sketch) {
-  sk = sketch;
-  camera = new Camera(sk);
-  map = new GameMap(sk);
-  mario = new Mario(sk, map);
-  gameObjects = [
-    mario,
-    new Monster(sk, map, [sk.loadImage(tigerImg)], 2 / 1.5, 1, mario)
-  ];
+export async function init() {
+  camera = new Camera();
+  map = await GameMap.fetchFromName("TestMap");
+  mario = new Mario(map);
+  gameObjects = [mario];
   switchEditingButton = new Button(
-    sk,
     10,
     10,
     200,
@@ -45,7 +41,7 @@ export function init(sketch) {
         : "Bearbeitungsmodus betreten";
     }
   );
-  saveButton = new Button(sk, 220, 10, 200, 50, "Karte Speichern", () => {
+  saveButton = new Button(220, 10, 200, 50, "Karte Speichern", () => {
     fetch("/api/map", {
       method: "POST",
       headers: {
@@ -62,9 +58,8 @@ export function init(sketch) {
       });
   });
   respawnButton = new Button(
-    sk,
-    sk.windowWidth / 2 - 200 / 2,
-    sk.windowHeight / 2,
+    windowWidth / 2 - 200 / 2,
+    windowHeight / 2,
     200,
     50,
     "Respawn",
@@ -72,9 +67,17 @@ export function init(sketch) {
       showDeathScreen = false;
       setShowDeathScreen(false);
       mario.respawn();
+      deathMusic.stop();
+      bgMusic.play();
     }
   );
-  myMusik = new sound("sheeran.mp3");
+  bgMusic = new Sound(bgMusicPath);
+  bgMusic.setLoop(true);
+  bgMusic.play();
+  bgMusic.setVolume(0.3);
+  deathMusic = new Sound(deathMusicPath);
+  deathMusic.setLoop(true);
+  deathMusic.setVolume(0.3);
 }
 
 function getBlockBar() {
@@ -86,8 +89,8 @@ function getBlockBar() {
   const width = (blockSize + blockSpacing) * numBlocks - blockSpacing;
   const height = blockSize;
   const yOffset = 10;
-  const x = sk.windowWidth / 2 - (width + spacing) / 2;
-  const y = sk.windowHeight - (height + spacing) - yOffset;
+  const x = windowWidth / 2 - (width + spacing) / 2;
+  const y = windowHeight - (height + spacing) - yOffset;
   const realWidth = width + spacing;
   const realHeight = height + spacing;
   return {
@@ -119,12 +122,13 @@ function centerCamera() {
     mario.pos
       .mul(-SIZE)
       .sub(SIZE / 2, (SIZE * 1.5) / 2 + (mario.ducked ? -SIZE * 0.5 : 0))
-      .add(sk.windowWidth / 2, sk.windowHeight / 2)
+      .add(windowWidth / 2, windowHeight / 2)
   );
 }
 
 export function update(deltaTime) {
   if (!editing && !showDeathScreen) {
+    map.update(deltaTime);
     gameObjects.forEach(obj => obj.update(deltaTime));
     centerCamera();
   }
@@ -136,16 +140,16 @@ export function mouseDown(e) {
 
     if (
       !(
-        sk.mouseX > blockBar.x &&
-        sk.mouseX < blockBar.x + blockBar.realWidth &&
-        sk.mouseY > blockBar.y &&
-        sk.mouseY < blockBar.y + blockBar.realHeight
+        mouseX > blockBar.x &&
+        mouseX < blockBar.x + blockBar.realWidth &&
+        mouseY > blockBar.y &&
+        mouseY < blockBar.y + blockBar.realHeight
       )
     ) {
-      const gridX = Math.floor((sk.mouseX - camera.pos.x) / (16 * SCALE));
-      const gridY = Math.floor((sk.mouseY - camera.pos.y) / (16 * SCALE));
-      if (sk.mouseButton === sk.LEFT) {
-        if (sk.keyIsDown(17)) {
+      const gridX = Math.floor((mouseX - camera.pos.x) / (16 * SCALE));
+      const gridY = Math.floor((mouseY - camera.pos.y) / (16 * SCALE));
+      if (mouseButton === LEFT) {
+        if (keyIsDown(17)) {
           map.set(gridX, gridY, 0);
           e.preventDefault();
         } else {
@@ -155,19 +159,19 @@ export function mouseDown(e) {
     } else {
       blockBar.barTiles.forEach((tile, i) => {
         const blockX =
-          sk.windowWidth / 2 -
+          windowWidth / 2 -
           blockBar.width / 2 +
           i * (blockBar.blockSize + blockBar.blockSpacing);
         const blockY =
-          sk.windowHeight -
+          windowHeight -
           blockBar.height -
           blockBar.yOffset -
           blockBar.spacing / 2;
         if (
-          sk.mouseX > blockX &&
-          sk.mouseY > blockY &&
-          sk.mouseX < blockX + blockBar.blockSize &&
-          sk.mouseY < blockY + blockBar.blockSize
+          mouseX > blockX &&
+          mouseY > blockY &&
+          mouseX < blockX + blockBar.blockSize &&
+          mouseY < blockY + blockBar.blockSize
         ) {
           selectedBlock = i + 1;
         }
@@ -178,7 +182,7 @@ export function mouseDown(e) {
 
 export function mouseWheel(e) {
   if (editing) {
-    if (sk.keyIsDown(17)) {
+    if (keyIsDown(17)) {
       // 17 for CTRL
       camera.move(-e.delta * 2, 0);
       e.preventDefault();
@@ -189,55 +193,49 @@ export function mouseWheel(e) {
 }
 
 export function draw() {
-  sk.background(BG);
+  background(BG);
   map.drawBackground();
   camera.bind();
-  map.draw(camera);
+  map.draw();
   gameObjects.forEach(obj => {
-    sk.push();
+    push();
     obj.draw();
-    sk.pop();
+    pop();
   });
 
   if (editing) {
     const blockBar = getBlockBar();
 
     if (
-      sk.mouseX > blockBar.x &&
-      sk.mouseX < blockBar.x + blockBar.realWidth &&
-      sk.mouseY > blockBar.y &&
-      sk.mouseY < blockBar.y + blockBar.realHeight
+      mouseX > blockBar.x &&
+      mouseX < blockBar.x + blockBar.realWidth &&
+      mouseY > blockBar.y &&
+      mouseY < blockBar.y + blockBar.realHeight
     ) {
     } else {
-      sk.push();
-      const gridX = Math.floor((sk.mouseX - camera.pos.x) / (16 * SCALE));
-      const gridY = Math.floor((sk.mouseY - camera.pos.y) / (16 * SCALE));
+      push();
+      const gridX = Math.floor((mouseX - camera.pos.x) / (16 * SCALE));
+      const gridY = Math.floor((mouseY - camera.pos.y) / (16 * SCALE));
 
-      sk.fill(0, 0, 0, 0);
-      sk.strokeWeight(5);
-      sk.strokeJoin(sk.ROUND);
-      sk.stroke(127, 63, 120);
-      sk.rect(gridX * SIZE, gridY * SIZE, SIZE, SIZE);
-      sk.pop();
+      fill(0, 0, 0, 0);
+      strokeWeight(5);
+      strokeJoin(ROUND);
+      stroke(127, 63, 120);
+      rect(gridX * SIZE, gridY * SIZE, SIZE, SIZE);
+      pop();
     }
 
     camera.unbind();
-    sk.stroke("#000");
-    sk.fill("#fff");
-    sk.rect(
-      blockBar.x,
-      blockBar.y,
-      blockBar.realWidth,
-      blockBar.realHeight,
-      20
-    );
+    stroke("#000");
+    fill("#fff");
+    rect(blockBar.x, blockBar.y, blockBar.realWidth, blockBar.realHeight, 20);
     blockBar.barTiles.forEach((tile, i) => {
-      sk.image(
+      image(
         tile,
-        sk.windowWidth / 2 -
+        windowWidth / 2 -
           blockBar.width / 2 +
           i * (blockBar.blockSize + blockBar.blockSpacing),
-        sk.windowHeight -
+        windowHeight -
           blockBar.height -
           blockBar.yOffset -
           blockBar.spacing / 2,
@@ -245,13 +243,13 @@ export function draw() {
         blockBar.blockSize
       );
       if (i === selectedBlock - 1) {
-        sk.fill("#00000000");
-        sk.strokeWeight(5);
-        sk.rect(
-          sk.windowWidth / 2 -
+        fill("#00000000");
+        strokeWeight(5);
+        rect(
+          windowWidth / 2 -
             blockBar.width / 2 +
             i * (blockBar.blockSize + blockBar.blockSpacing),
-          sk.windowHeight -
+          windowHeight -
             blockBar.height -
             blockBar.yOffset -
             blockBar.spacing / 2,
@@ -265,33 +263,38 @@ export function draw() {
   camera.unbind();
   switchEditingButton.draw();
   saveButton.draw();
+  push();
+  textSize(32);
+  text("Score: " + mario.score, windowWidth / 2, 25);
+  pop();
 
-  sk.push();
-  sk.textSize(50);
-  sk.fill("#fff");
-  sk.text(Math.round(sk.frameRate()) + " fps", sk.windowWidth - 100, 50);
-  sk.pop();
+  push();
+  textSize(50);
+  fill("#fff");
+  text(Math.round(frameRate()) + " fps", windowWidth - 100, 50);
+  pop();
 
   if (showDeathScreen) {
-    sk.fill(0, 0, 0, 200);
-    sk.rect(0, 0, sk.windowWidth, sk.windowHeight);
+    fill(0, 0, 0, 200);
+    rect(0, 0, windowWidth, windowHeight);
 
-    sk.push();
-    sk.textAlign(sk.CENTER);
-    sk.stroke("#000");
-    sk.strokeWeight(5);
-    sk.fill("#fff");
-    sk.textSize(50);
-    sk.text("bruh moment", sk.windowWidth / 2, sk.windowHeight / 2 - 50);
-    sk.pop();
+    push();
+    textAlign(CENTER);
+    stroke("#000");
+    strokeWeight(5);
+    fill("#fff");
+    textSize(50);
+    text("bruh moment", windowWidth / 2, windowHeight / 2 - 50);
+    pop();
     respawnButton.draw();
+    bgMusic.stop();
+    deathMusic.play();
   }
 
   // Debug Hilfslinien
   /*
-  sk.stroke("#f00");
-  sk.line(0, sk.windowHeight / 2, sk.windowWidth, sk.windowHeight / 2);
-  sk.line(sk.windowWidth / 2, 0, sk.windowWidth / 2, sk.windowHeight);
+  stroke("#f00");
+  line(0, windowHeight / 2, windowWidth, windowHeight / 2);
+  line(windowWidth / 2, 0, windowWidth / 2, windowHeight);
   */
 }
-var myMusic;

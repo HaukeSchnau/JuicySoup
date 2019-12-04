@@ -4,20 +4,42 @@ import rocks from "./assets/rocks.png";
 import bg from "./assets/bg1.jpg";
 import { SIZE } from "./constants";
 import Vector from "./vector";
+import Tiger from "./tiger";
+import * as Game from "./game";
 
 class GameMap {
-  constructor(sk) {
-    this.sk = sk;
-    this.chunks = [];
-    this.tiles = [];
-    this.tiles[1] = sk.loadImage(ground);
-    this.tiles[2] = sk.loadImage(ground2);
-    this.tiles[3] = sk.loadImage(rocks);
-    this.bg = sk.loadImage(bg);
+  static listMaps() {
+    return fetch("/api/map").then(res => res.json());
+  }
 
-    fetch("/api/map")
+  static fetchFromName(name) {
+    return fetch(`/api/map/${name}`)
       .then(res => res.json())
-      .then(chunks => (this.chunks = chunks));
+      .then(
+        map =>
+          new GameMap(
+            map.chunks,
+            map.monsters,
+            map.spawnPoint,
+            map.name,
+            map.backgroundImage
+          )
+      );
+  }
+
+  constructor(chunks, monsters, spawnPoint, name, backgroundImage) {
+    this.chunks = chunks;
+    this.monsters = monsters.map(monster => {
+      switch (monster.type) {
+        case "tiger":
+          return new Tiger(this, monster.x, monster.y);
+      }
+    });
+    this.tiles = [];
+    this.tiles[1] = loadImage(ground);
+    this.tiles[2] = loadImage(ground2);
+    this.tiles[3] = loadImage(rocks);
+    this.bg = loadImage(bg);
   }
 
   set(x, y, tileId) {
@@ -36,10 +58,14 @@ class GameMap {
   }
 
   drawBackground() {
-    this.sk.image(this.bg, 0, 0, this.sk.windowWidth, this.sk.windowHeight);
+    image(this.bg, 0, 0, windowWidth, windowHeight);
   }
 
-  draw(camera) {
+  update(deltaTime) {
+    this.monsters.forEach(monster => monster.update(deltaTime));
+  }
+
+  draw() {
     this.chunks.forEach(chunk => {
       const chunkPos = new Vector(chunk.x, chunk.y).mul(16);
       chunk.data.forEach((tile, i) => {
@@ -47,14 +73,14 @@ class GameMap {
         const y = Math.floor(i / 16);
         const x = i - y * 16;
         if (
-          (x + chunkPos.x + 1) * SIZE < -camera.pos.x ||
-          (y + chunkPos.y + 1) * SIZE < -camera.pos.y ||
-          (x + chunkPos.x) * SIZE > -camera.pos.x + this.sk.windowWidth ||
-          (y + chunkPos.y) * SIZE > -camera.pos.y + this.sk.windowHeight
+          (x + chunkPos.x + 1) * SIZE < -Game.camera.pos.x ||
+          (y + chunkPos.y + 1) * SIZE < -Game.camera.pos.y ||
+          (x + chunkPos.x) * SIZE > -Game.camera.pos.x + windowWidth ||
+          (y + chunkPos.y) * SIZE > -Game.camera.pos.y + windowHeight
         )
           return;
 
-        this.sk.image(
+        image(
           this.tiles[tile],
           (x + chunkPos.x) * SIZE,
           (y + chunkPos.y) * SIZE,
@@ -63,21 +89,11 @@ class GameMap {
         );
       });
     });
-
-    // for (let i = 0; i < this.map.length; i++) {
-    //   let x = i;
-    //   if (!this.map[x]) continue;
-
-    //   for (let j = 0; j < this.map[x].length; j++) {
-    //     let y = j;
-    //     const tile = this.map[x][y];
-    //     if (!tile) {
-    //       continue;
-    //     }
-
-    //     this.sk.image(this.tiles[tile], x * SIZE, y * SIZE, SIZE, SIZE);
-    //   }
-    // }
+    this.monsters.forEach(monster => {
+      push();
+      monster.draw();
+      pop();
+    });
   }
 }
 

@@ -2,27 +2,31 @@ import p5 from "p5";
 import "./style.css";
 import * as Game from "./game";
 
-new p5(sk => {
-  sk.preload = () => {
-    Game.init(sk);
-  };
+let isInitialized = false;
 
-  sk.mouseWheel = Game.mouseWheel;
-  sk.mouseDragged = Game.mouseDown;
-  sk.mousePressed = Game.mouseDown;
+window.preload = async () => {
+  await Game.init(window);
+  isInitialized = true;
+  window.mouseWheel = Game.mouseWheel;
+  window.mouseDragged = Game.mouseDown;
+  window.mousePressed = Game.mouseDown;
+};
 
-  sk.setup = () => {
-    sk.createCanvas(sk.windowWidth, sk.windowHeight);
-    sk.noSmooth();
-  };
+window.setup = () => {
+  createCanvas(windowWidth, windowHeight);
+  noSmooth();
+};
 
-  sk.draw = () => {
-    Game.input(sk.deltaTime);
-    Game.update(sk.deltaTime);
-    Game.draw();
-  };
+window.draw = () => {
+  if (!isInitialized) return;
 
-  sk.windowResized = () => {
-    sk.resizeCanvas(sk.windowWidth, sk.windowHeight);
-  };
-});
+  Game.input(deltaTime);
+  Game.update(deltaTime);
+  Game.draw();
+};
+
+window.windowResized = () => {
+  resizeCanvas(windowWidth, windowHeight);
+};
+
+new p5();
