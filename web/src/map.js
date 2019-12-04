@@ -61,8 +61,8 @@ class GameMap {
     image(this.bg, 0, 0, windowWidth, windowHeight);
   }
 
-  update(deltaTime) {
-    this.monsters.forEach(monster => monster.update(deltaTime));
+  update() {
+    this.monsters.forEach(monster => monster.update());
   }
 
   draw() {

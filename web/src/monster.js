@@ -32,7 +32,7 @@ class Monster {
       this.direction = "right";
     }
     const nextPos = this.pos.add(distance, 0);
-    const collision = collide(nextPos, this.map, this.width, this.height);
+    const collision = collide(nextPos, this.width, this.height);
     if (collision) {
       this.speed *= -1;
 
@@ -44,7 +44,7 @@ class Monster {
     }
   }
 
-  update(deltaTime) {
+  update() {
     if (this.dead) return;
 
     if (frameCount % 15 === 0) {
@@ -67,7 +67,7 @@ class Monster {
     this.walk(this.speed * deltaTime);
 
     const nextPos = this.pos.subV(this.jumpForce);
-    const collision = collide(nextPos, this.map, this.width, this.height);
+    const collision = collide(nextPos, this.width, this.height);
     if (collision) {
       const headCollision = collision.subV(this.pos).y < 0;
 

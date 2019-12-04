@@ -9,10 +9,10 @@ import deathMusicPath from "./assets/death.mp3";
 import Sound from "./sound";
 
 const BG = "#254152";
-let gameObjects = [];
+export let gameObjects = [];
 export let mario;
 export let camera;
-let map;
+export let map;
 let editing = false;
 let switchEditingButton, saveButton, respawnButton;
 let selectedBlock = 1;
@@ -77,7 +77,7 @@ export async function init() {
   bgMusic.setVolume(0.3);
   deathMusic = new Sound(deathMusicPath);
   deathMusic.setLoop(true);
-  deathMusic.setVolume(0.3);
+  deathMusic.setVolume(0.25);
 }
 
 function getBlockBar() {
@@ -108,13 +108,13 @@ function getBlockBar() {
   };
 }
 
-export function input(deltaTime) {
+export function input() {
   switchEditingButton.input();
   saveButton.input();
   if (showDeathScreen) respawnButton.input();
   if (!editing && !showDeathScreen) {
-    gameObjects.forEach(obj => obj.input && obj.input(deltaTime));
-  } else camera.input(deltaTime);
+    gameObjects.forEach(obj => obj.input && obj.input());
+  } else camera.input();
 }
 
 function centerCamera() {
@@ -126,10 +126,10 @@ function centerCamera() {
   );
 }
 
-export function update(deltaTime) {
+export function update() {
   if (!editing && !showDeathScreen) {
-    map.update(deltaTime);
-    gameObjects.forEach(obj => obj.update(deltaTime));
+    map.update();
+    gameObjects.forEach(obj => obj.update());
     centerCamera();
   }
 }
@@ -177,6 +177,12 @@ export function mouseDown(e) {
         }
       });
     }
+  }
+}
+
+export function mouseClicked() {
+  if (!editing && !showDeathScreen) {
+    gameObjects.forEach(obj => obj.mouseClicked && obj.mouseClicked());
   }
 }
 
@@ -284,7 +290,7 @@ export function draw() {
     strokeWeight(5);
     fill("#fff");
     textSize(50);
-    text("bruh moment", windowWidth / 2, windowHeight / 2 - 50);
+    text("The big sad", windowWidth / 2, windowHeight / 2 - 50);
     pop();
     respawnButton.draw();
     bgMusic.stop();

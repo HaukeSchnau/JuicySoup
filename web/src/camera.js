@@ -8,7 +8,7 @@ class Camera {
     this.isBound = false;
   }
 
-  input(deltaTime) {
+  input() {
     if (keyIsDown(37)) {
       // ARROW_LEFT
       this.move(SPEED * deltaTime, 0);

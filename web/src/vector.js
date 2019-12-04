@@ -8,6 +8,15 @@ class Vector {
     return new Vector(this.x, this.y);
   }
 
+  length() {
+    return Math.sqrt(this.x * this.x + this.y * this.y);
+  }
+
+  normalize() {
+    const length = this.length();
+    return new Vector(this.x / length, this.y / length);
+  }
+
   add(x, y) {
     if (typeof y === "undefined") {
       return new Vector(this.x + x, this.y + x);

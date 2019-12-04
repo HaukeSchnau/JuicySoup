@@ -10,6 +10,7 @@ window.preload = async () => {
   window.mouseWheel = Game.mouseWheel;
   window.mouseDragged = Game.mouseDown;
   window.mousePressed = Game.mouseDown;
+  window.mouseClicked = Game.mouseClicked;
 };
 
 window.setup = () => {
@@ -20,8 +21,8 @@ window.setup = () => {
 window.draw = () => {
   if (!isInitialized) return;
 
-  Game.input(deltaTime);
-  Game.update(deltaTime);
+  Game.input();
+  Game.update();
   Game.draw();
 };
 

@@ -3,6 +3,7 @@ import marioImg from "./assets/mario.png";
 import { collide } from "./physics";
 import { SCALE, SIZE } from "./constants";
 import * as Game from "./game";
+import Bullet from "./bullet";
 
 const startPos = new Vector(-7, 0);
 
@@ -32,12 +33,12 @@ class Mario {
     return this.ducked ? 0.005 : 0.0078125;
   }
 
-  input(deltaTime) {
+  input() {
     if (keyIsDown(65)) {
       // LEFT
       this.direction = "left";
       const nextPos = this.pos.sub(this.speed * deltaTime, 0);
-      const collision = collide(nextPos, this.map, this.width, this.height);
+      const collision = collide(nextPos, this.width, this.height);
       if (collision) {
         this.pos.x = collision.x + 1;
       } else {
@@ -48,7 +49,7 @@ class Mario {
       // RIGHT
       this.direction = "right";
       const nextPos = this.pos.add(this.speed * deltaTime, 0);
-      const collision = collide(nextPos, this.map, this.width, this.height);
+      const collision = collide(nextPos, this.width, this.height);
       if (collision) {
         this.pos.x = collision.x - 1;
       } else {
@@ -65,7 +66,7 @@ class Mario {
     } else {
       if (this.ducked) {
         const nextPos = this.pos.sub(0, 0.5);
-        const collision = collide(nextPos, this.map, this.width, this.height);
+        const collision = collide(nextPos, this.width, this.height);
         if (!collision) {
           this.ducked = false;
         }
@@ -73,14 +74,28 @@ class Mario {
     }
   }
 
-  update(deltaTime) {
+  mouseClicked() {
+    Game.gameObjects.push(
+      new Bullet(
+        this.pos.add(this.width / 2, this.height / 2),
+        new Vector(mouseX, mouseY)
+          .subV(Game.camera.pos)
+          .div(SIZE)
+          .subV(this.pos.add(this.width / 2, this.height / 2))
+          .normalize(),
+        0.2
+      )
+    );
+  }
+
+  update() {
     if (this.currentHealth <= 0) {
       this.currentHealth = true;
       Game.setShowDeathScreen(true);
     }
 
     const nextPos = this.pos.subV(this.jumpForce);
-    const collision = collide(nextPos, this.map, this.width, this.height);
+    const collision = collide(nextPos, this.width, this.height);
     if (collision) {
       const headCollision = collision.subV(this.pos).y < 0;
 
