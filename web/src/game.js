@@ -1,5 +1,4 @@
 import Mario from "./mario";
-import Tiger from "./tiger";
 import Camera from "./camera";
 import GameMap from "./map";
 import Button from "./button";
@@ -18,14 +17,15 @@ let switchEditingButton, saveButton, respawnButton;
 let selectedBlock = 1;
 let showDeathScreen = false;
 let bgMusic, deathMusic;
+export let isInitialized = false;
 
 export function setShowDeathScreen(val) {
   showDeathScreen = val;
 }
 
-export async function init() {
+export async function init(mapName) {
   camera = new Camera();
-  map = await GameMap.fetchFromName("TestMap");
+  map = await GameMap.fetchFromName(mapName);
   mario = new Mario(map);
   gameObjects = [mario];
   switchEditingButton = new Button(
@@ -42,12 +42,12 @@ export async function init() {
     }
   );
   saveButton = new Button(220, 10, 200, 50, "Karte Speichern", () => {
-    fetch("/api/map", {
+    fetch(`/api/map/${map.name}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(map.chunks)
+      body: JSON.stringify({ chunks: map.chunks })
     })
       .then(res => res.json())
       .then(res => {
@@ -65,7 +65,6 @@ export async function init() {
     "Respawn",
     () => {
       showDeathScreen = false;
-      setShowDeathScreen(false);
       mario.respawn();
       deathMusic.stop();
       bgMusic.play();
@@ -78,6 +77,8 @@ export async function init() {
   deathMusic = new Sound(deathMusicPath);
   deathMusic.setLoop(true);
   deathMusic.setVolume(0.25);
+
+  isInitialized = true;
 }
 
 function getBlockBar() {
@@ -109,6 +110,8 @@ function getBlockBar() {
 }
 
 export function input() {
+  if (!isInitialized) return;
+
   switchEditingButton.input();
   saveButton.input();
   if (showDeathScreen) respawnButton.input();
@@ -127,6 +130,8 @@ function centerCamera() {
 }
 
 export function update() {
+  if (!isInitialized) return;
+
   if (!editing && !showDeathScreen) {
     map.update();
     gameObjects.forEach(obj => obj.update());
@@ -135,6 +140,8 @@ export function update() {
 }
 
 export function mouseDown(e) {
+  if (!isInitialized) return;
+
   if (editing) {
     const blockBar = getBlockBar();
 
@@ -181,12 +188,16 @@ export function mouseDown(e) {
 }
 
 export function mouseClicked() {
+  if (!isInitialized) return;
+
   if (!editing && !showDeathScreen) {
     gameObjects.forEach(obj => obj.mouseClicked && obj.mouseClicked());
   }
 }
 
 export function mouseWheel(e) {
+  if (!isInitialized) return;
+
   if (editing) {
     if (keyIsDown(17)) {
       // 17 for CTRL
@@ -199,6 +210,8 @@ export function mouseWheel(e) {
 }
 
 export function draw() {
+  if (!isInitialized) return;
+
   background(BG);
   map.drawBackground();
   camera.bind();
@@ -249,6 +262,7 @@ export function draw() {
         blockBar.blockSize
       );
       if (i === selectedBlock - 1) {
+        push();
         fill("#00000000");
         strokeWeight(5);
         rect(
@@ -262,6 +276,7 @@ export function draw() {
           blockBar.blockSize,
           blockBar.blockSize
         );
+        pop();
       }
     });
   }

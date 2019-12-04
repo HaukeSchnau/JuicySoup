@@ -5,13 +5,11 @@ import { SCALE, SIZE } from "./constants";
 import * as Game from "./game";
 import Bullet from "./bullet";
 
-const startPos = new Vector(-7, 0);
-
 class Mario {
   constructor(map) {
     this.map = map;
     this.marioImg = loadImage(marioImg);
-    this.pos = startPos.copy();
+    this.pos = Game.map.spawnPoint.copy();
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
     this.ducked = false;
@@ -118,7 +116,7 @@ class Mario {
   }
 
   respawn() {
-    this.pos = startPos.copy();
+    this.pos = Game.map.spawnPoint.copy();
     this.currentHealth = this.maxHealth;
   }
 
@@ -152,7 +150,7 @@ class Mario {
       healthBarWidth * (this.currentHealth / this.maxHealth),
       healthBarHeight
     );
-    textAlign(CENTER);
+    textAlign(CENTER, CENTER);
     fill("#000");
     text(
       Math.round(this.currentHealth) + " HP",

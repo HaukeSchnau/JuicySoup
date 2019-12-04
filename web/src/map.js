@@ -29,6 +29,8 @@ class GameMap {
 
   constructor(chunks, monsters, spawnPoint, name, backgroundImage) {
     this.chunks = chunks;
+    this.name = name;
+    this.spawnPoint = new Vector(spawnPoint.x, spawnPoint.y);
     this.monsters = monsters.map(monster => {
       switch (monster.type) {
         case "tiger":

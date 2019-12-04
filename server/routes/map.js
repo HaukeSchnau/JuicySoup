@@ -13,13 +13,14 @@ router.get("/:name", async (req, res) => {
   res.json(map);
 });
 
-router.post("/", async (req, res) => {
-  for (let i = 0; i < req.body.length; i++) {
-    const chunk = req.body[i];
-    await Chunk.findOneAndUpdate({ x: chunk.x, y: chunk.y }, chunk, {
+router.post("/:name", async (req, res) => {
+  await Map.findOneAndUpdate(
+    { name: req.params.name },
+    { $set: { chunks: req.body.chunks } },
+    {
       upsert: true
-    });
-  }
+    }
+  );
   res.json({ success: "probably" });
 });
 

@@ -1,17 +1,32 @@
 import p5 from "p5";
 import "./style.css";
 import * as Game from "./game";
+import * as MainMenu from "./mainMenu";
 
-let isInitialized = false;
+let currentScreen = MainMenu;
+
+window.switchScreen = async (screenName, opts) => {
+  switch (screenName) {
+    case "mainMenu":
+      currentScreen = MainMenu;
+      await MainMenu.init();
+      break;
+    case "game":
+      currentScreen = Game;
+      await Game.init(opts.mapName);
+      break;
+  }
+  window.mouseWheel = currentScreen.mouseWheel;
+  window.mouseDragged = currentScreen.mouseDown;
+  window.mousePressed = currentScreen.mouseDown;
+  window.mouseClicked = currentScreen.mouseClicked;
+};
 
 window.preload = async () => {
-  await Game.init(window);
-  isInitialized = true;
-  window.mouseWheel = Game.mouseWheel;
-  window.mouseDragged = Game.mouseDown;
-  window.mousePressed = Game.mouseDown;
-  window.mouseClicked = Game.mouseClicked;
+  switchScreen("mainMenu");
 };
+
+window.mouseWheel = () => {};
 
 window.setup = () => {
   createCanvas(windowWidth, windowHeight);
@@ -19,11 +34,11 @@ window.setup = () => {
 };
 
 window.draw = () => {
-  if (!isInitialized) return;
+  if (!currentScreen.isInitialized) return;
 
-  Game.input();
-  Game.update();
-  Game.draw();
+  currentScreen.input();
+  currentScreen.update();
+  currentScreen.draw();
 };
 
 window.windowResized = () => {

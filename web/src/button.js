@@ -28,14 +28,17 @@ class Button {
   }
 
   draw() {
+    push();
     fill("#fff");
     stroke("#000");
     strokeWeight(2);
-    rect(this.x, this.y, this.width, this.height, 10);
+    rect(this.x, this.y, this.width, this.height, 50);
     noStroke();
     textAlign(CENTER, CENTER);
     fill("#000");
+    textSize(20);
     text(this.text, this.x + 1, this.y + 1, this.width, this.height);
+    pop();
   }
 }
 
