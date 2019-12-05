@@ -1,11 +1,11 @@
 import { SCALE, SIZE } from "./constants";
-import { map, gameObjects } from "./game";
+import { map, mario } from "./game";
 import { entitiesCollide } from "./physics";
 
 class Bullet {
   constructor(pos, direction, speed) {
     this.pos = pos.copy();
-    this.direction = direction;
+    this.velocity = direction.mul(speed);
     this.speed = speed;
     this.distanceTraveled = 0;
     this.dead = false;
@@ -16,18 +16,18 @@ class Bullet {
   update() {
     if (this.dead) return;
 
-    this.pos = this.pos.addV(this.direction.mul(this.speed));
-    this.distanceTraveled += this.direction.mul(this.speed).length();
+    this.pos = this.pos.addV(this.velocity);
+    this.distanceTraveled += this.velocity.length();
     if (this.distanceTraveled > 50) {
       this.dead = true;
     }
-    this.direction = this.direction.add(0, 0.005);
+    this.velocity = this.velocity.add(0, 0.001);
 
     map.monsters.forEach(monster => {
       if (monster.dead) return;
 
       if (entitiesCollide(this, monster)) {
-        monster.dead = true;
+        mario.kill(monster);
         this.dead = true;
       }
     });

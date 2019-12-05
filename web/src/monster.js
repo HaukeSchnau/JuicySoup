@@ -56,8 +56,7 @@ class Monster {
         this.pos.subV(Game.mario.pos).y - Game.mario.height > -0.2 &&
         Game.mario.jumpForce.y < 0
       ) {
-        this.dead = true;
-        Game.mario.score += 10;
+        Game.mario.kill(this);
         this.deathSound.play();
       } else {
         Game.mario.currentHealth -= 2;

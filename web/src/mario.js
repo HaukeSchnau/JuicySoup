@@ -31,6 +31,11 @@ class Mario {
     return this.ducked ? 0.005 : 0.0078125;
   }
 
+  kill(entity) {
+    this.score += 10;
+    entity.dead = true;
+  }
+
   input() {
     if (keyIsDown(65)) {
       // LEFT
@@ -81,7 +86,7 @@ class Mario {
           .div(SIZE)
           .subV(this.pos.add(this.width / 2, this.height / 2))
           .normalize(),
-        0.2
+        0.3
       )
     );
   }
