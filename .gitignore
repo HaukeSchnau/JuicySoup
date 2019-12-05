@@ -1,8 +1,6 @@
 logs
 *.log
 
-server/config/database.js
-
 node_modules
 dist
 !dist/index.html
@@ -13,3 +11,7 @@ dist
 *.fls
 *.synctex.gz
 *.toc
+
+## MongoDB Credentials / Secret
+mongocreds
+server/config/database.js
