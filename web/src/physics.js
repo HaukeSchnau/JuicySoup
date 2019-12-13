@@ -1,6 +1,8 @@
 import Vector from "./vector";
 import { map } from "./game";
 
+// Kollisionserkennung eines Entities mit der gesamten Map
+// gibt Position des Blockes zurück, mit dem
 export function collide(entityPos, width, height) {
   const chunkPos = entityPos.div(16);
   const chunks = map.chunks.filter(

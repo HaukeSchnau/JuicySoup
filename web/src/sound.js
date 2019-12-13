@@ -1,3 +1,5 @@
+// Einfache Klasse, um Sound wiederzugeben
+// Sound-Objekte sollten zu Beginn des Spiels erstellt werden, um im Voraus zu laden.
 export default class Sound {
   constructor(src) {
     this.sound = document.createElement("audio");

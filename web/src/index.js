@@ -5,6 +5,9 @@ import * as MainMenu from "./mainMenu";
 
 let currentScreen = MainMenu;
 
+// Wechselt zwischen Screens wie z.B. dem Hauptmenü oder dem Spiel selbst.
+// Mögliche screenNames sind zur Zeit: mainMenu, game
+// "game" nimmt in opts ein Objekt mit dem mapName an.
 window.switchScreen = async (screenName, opts) => {
   switch (screenName) {
     case "mainMenu":

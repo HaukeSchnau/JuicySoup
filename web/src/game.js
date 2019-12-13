@@ -1,3 +1,6 @@
+// Das Spiel selbst
+// Diese Datei ist ein Screen, der vergleichbar mit mainMenu.js ist
+
 import Mario from "./mario";
 import Camera from "./camera";
 import GameMap from "./map";
@@ -8,16 +11,25 @@ import deathMusicPath from "./assets/death.mp3";
 import Sound from "./sound";
 
 const BG = "#254152";
+
+// GameObjects haben die Funktionen draw, update und evtl. input
 export let gameObjects = [];
+
 export let mario;
 export let camera;
 export let map;
+
+// Bearbeitungsmodus
+// TODO Bearbeitungsmodus in eigene Datei?
 let editing = false;
-let switchEditingButton, saveButton, respawnButton;
 let selectedBlock = 1;
+
+let switchEditingButton, saveButton, respawnButton;
 let showDeathScreen = false;
-let bgMusic, deathMusic;
 export let isInitialized = false;
+
+// Objekte zur Steuerung der Musik. Sie nutzen die Klasse Sound
+let bgMusic, deathMusic;
 
 export function setShowDeathScreen(val) {
   showDeathScreen = val;
@@ -81,8 +93,10 @@ export async function init(mapName) {
   isInitialized = true;
 }
 
+// Leiste mit Blöcken im Bearbeitungsmodus
+// TODO umbenennen/umstrukturieren
 function getBlockBar() {
-  const barTiles = map.tiles.slice(1); // Luft ist kein Block
+  const barTiles = map.tiles.slice(1); // Entfernt Luft aus der Liste der Blöcke
   const spacing = 20;
   const blockSpacing = 10;
   const numBlocks = barTiles.length;
@@ -120,6 +134,7 @@ export function input() {
   } else camera.input();
 }
 
+// Zentriert die Kamera auf den Spieler
 function centerCamera() {
   camera.set(
     mario.pos

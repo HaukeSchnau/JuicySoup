@@ -1,28 +1,34 @@
-import { SCALE, SIZE } from "./constants";
+import { SIZE } from "./constants";
 import { map, mario } from "./game";
 import { entitiesCollide } from "./physics";
 
+// Klasse für Projektile, die vom Charakter geschossen werden können
+// pos: Vector
+// velocity: Vector
 class Bullet {
-  constructor(pos, direction, speed) {
+  constructor(pos, velocity) {
     this.pos = pos.copy();
-    this.velocity = direction.mul(speed);
-    this.speed = speed;
+    this.velocity = velocity.copy();
     this.distanceTraveled = 0;
     this.dead = false;
     this.width = 0.3;
     this.height = 0.3;
   }
 
+  // Wird jeden Frame von game.js aufgerufen
   update() {
     if (this.dead) return;
 
     this.pos = this.pos.addV(this.velocity);
+    // Entferne Projektil, wenn es zu lang fliegt, um Performance zu sparen
     this.distanceTraveled += this.velocity.length();
     if (this.distanceTraveled > 50) {
       this.dead = true;
     }
+    // Schwerkraft
     this.velocity = this.velocity.add(0, 0.001);
 
+    // Kollisionserkennung mit jedem Monster auf der Map
     map.monsters.forEach(monster => {
       if (monster.dead) return;
 
@@ -33,6 +39,7 @@ class Bullet {
     });
   }
 
+  // Wird jeden Frame von game.js aufgerufen
   draw() {
     if (this.dead) return;
 

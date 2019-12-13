@@ -78,6 +78,7 @@ class Mario {
   }
 
   mouseClicked() {
+    const bulletSpeed = 0.3;
     Game.gameObjects.push(
       new Bullet(
         this.pos.add(this.width / 2, this.height / 2),
@@ -85,8 +86,8 @@ class Mario {
           .subV(Game.camera.pos)
           .div(SIZE)
           .subV(this.pos.add(this.width / 2, this.height / 2))
-          .normalize(),
-        0.3
+          .normalize()
+          .mul(bulletSpeed)
       )
     );
   }

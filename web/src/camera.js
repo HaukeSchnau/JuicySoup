@@ -8,6 +8,7 @@ class Camera {
     this.isBound = false;
   }
 
+  // Wird im Bearbeitungsmodus genutzt
   input() {
     if (keyIsDown(37)) {
       // ARROW_LEFT
@@ -43,13 +44,18 @@ class Camera {
     }
   }
 
+  // Wendet den Kamera-Effekt an.
+  // Sollte aufgerufen werden, bevor Spielelemente gezeichnet werden
   bind() {
     if (!this.isBound) {
+      // Bewegt das gesamte Spiel, um den Effekt einer Kamera zu erschaffen
       translate(this.pos.x, this.pos.y);
       this.isBound = true;
     }
   }
 
+  // Schaltet Kamera-Effekte aus
+  // Sollte aufgerufen werden, bevor HUD gezeichnet wird
   unbind() {
     if (this.isBound) {
       translate(-this.pos.x, -this.pos.y);
