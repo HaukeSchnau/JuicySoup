@@ -1,5 +1,5 @@
 import { SIZE } from "./constants";
-import { map, mario } from "./game";
+import { map, player } from "./game";
 import { entitiesCollide } from "./physics";
 
 // Klasse für Projektile, die vom Charakter geschossen werden können
@@ -33,7 +33,7 @@ class Bullet {
       if (monster.dead) return;
 
       if (entitiesCollide(this, monster)) {
-        mario.kill(monster);
+        player.kill(monster);
         this.dead = true;
       }
     });

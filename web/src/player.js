@@ -5,10 +5,10 @@ import { SCALE, SIZE } from "./constants";
 import * as Game from "./game";
 import Bullet from "./bullet";
 
-class Mario {
+class Player {
   constructor(map) {
     this.map = map;
-    this.marioImg = loadImage(marioImg);
+    this.sprite = loadImage(marioImg);
     this.pos = Game.map.spawnPoint.copy();
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
@@ -138,7 +138,7 @@ class Mario {
       x = -x - SIZE;
     }
 
-    image(this.marioImg, x, y, width, height);
+    image(this.sprite, x, y, width, height);
     pop();
     const healthBarWidth = 150;
     const healthBarHeight = 20;
@@ -166,4 +166,4 @@ class Mario {
   }
 }
 
-export default Mario;
+export default Player;

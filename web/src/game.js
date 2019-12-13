@@ -1,7 +1,7 @@
 // Das Spiel selbst
 // Diese Datei ist ein Screen, der vergleichbar mit mainMenu.js ist
 
-import Mario from "./mario";
+import Player from "./player";
 import Camera from "./camera";
 import GameMap from "./map";
 import Button from "./button";
@@ -15,7 +15,7 @@ const BG = "#254152";
 // GameObjects haben die Funktionen draw, update und evtl. input
 export let gameObjects = [];
 
-export let mario;
+export let player;
 export let camera;
 export let map;
 
@@ -38,8 +38,8 @@ export function setShowDeathScreen(val) {
 export async function init(mapName) {
   camera = new Camera();
   map = await GameMap.fetchFromName(mapName);
-  mario = new Mario(map);
-  gameObjects = [mario];
+  player = new Player(map);
+  gameObjects = [player];
   switchEditingButton = new Button(
     10,
     10,
@@ -77,7 +77,7 @@ export async function init(mapName) {
     "Respawn",
     () => {
       showDeathScreen = false;
-      mario.respawn();
+      player.respawn();
       deathMusic.stop();
       bgMusic.play();
     }
@@ -137,9 +137,9 @@ export function input() {
 // Zentriert die Kamera auf den Spieler
 function centerCamera() {
   camera.set(
-    mario.pos
+    player.pos
       .mul(-SIZE)
-      .sub(SIZE / 2, (SIZE * 1.5) / 2 + (mario.ducked ? -SIZE * 0.5 : 0))
+      .sub(SIZE / 2, (SIZE * 1.5) / 2 + (player.ducked ? -SIZE * 0.5 : 0))
       .add(windowWidth / 2, windowHeight / 2)
   );
 }
@@ -301,7 +301,7 @@ export function draw() {
   saveButton.draw();
   push();
   textSize(32);
-  text("Score: " + mario.score, windowWidth / 2, 25);
+  text("Score: " + player.score, windowWidth / 2, 25);
   pop();
 
   push();

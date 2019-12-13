@@ -51,15 +51,15 @@ class Monster {
       this.currentSprite++;
       if (this.currentSprite >= this.sprites.length) this.currentSprite = 0;
     }
-    if (entitiesCollide(this, Game.mario)) {
+    if (entitiesCollide(this, Game.player)) {
       if (
-        this.pos.subV(Game.mario.pos).y - Game.mario.height > -0.2 &&
-        Game.mario.jumpForce.y < 0
+        this.pos.subV(Game.player.pos).y - Game.player.height > -0.2 &&
+        Game.player.jumpForce.y < 0
       ) {
-        Game.mario.kill(this);
+        Game.player.kill(this);
         this.deathSound.play();
       } else {
-        Game.mario.currentHealth -= 2;
+        Game.player.currentHealth -= 2;
       }
     }
 
