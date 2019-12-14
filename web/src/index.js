@@ -23,10 +23,17 @@ window.switchScreen = async (screenName, opts) => {
   window.mouseDragged = currentScreen.mouseDown;
   window.mousePressed = currentScreen.mouseDown;
   window.mouseClicked = currentScreen.mouseClicked;
+  // TODO remove this
+  localStorage.setItem("currentScreen", screenName);
+  localStorage.setItem("opts", JSON.stringify(opts));
 };
 
 window.preload = async () => {
-  switchScreen("mainMenu");
+  // TODO remove localStorage
+  switchScreen(
+    localStorage.getItem("currentScreen") || "mainMenu",
+    JSON.parse(localStorage.getItem("opts") || "{}")
+  );
 };
 
 window.mouseWheel = () => {};

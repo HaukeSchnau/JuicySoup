@@ -44,6 +44,21 @@ class GameMap {
     this.bg = loadImage(bg);
   }
 
+  get(x, y) {
+    const chunkPos = new Vector(x, y).div(16).floor();
+    let chunk = this.chunks.find(
+      chunk => chunk.x === chunkPos.x && chunk.y === chunkPos.y
+    );
+    if (!chunk) {
+      chunk = { x: chunkPos.x, y: chunkPos.y, data: [] };
+      this.chunks.push(chunk);
+    }
+    const chunkX = x - chunk.x * 16;
+    const chunkY = y - chunk.y * 16;
+    const index = chunkX + chunkY * 16;
+    return chunk.data[index];
+  }
+
   set(x, y, tileId) {
     const chunkPos = new Vector(x, y).div(16).floor();
     let chunk = this.chunks.find(
@@ -71,7 +86,7 @@ class GameMap {
     this.chunks.forEach(chunk => {
       const chunkPos = new Vector(chunk.x, chunk.y).mul(16);
       chunk.data.forEach((tile, i) => {
-        if (!tile) return;
+        if (!tile || tile >= this.tiles.length) return;
         const y = Math.floor(i / 16);
         const x = i - y * 16;
         if (

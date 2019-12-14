@@ -9,6 +9,8 @@ import { SCALE, SIZE } from "./constants";
 import bgMusicPath from "./assets/sheeran.mp3";
 import deathMusicPath from "./assets/death.mp3";
 import Sound from "./sound";
+import Cutscene from "./cutscene";
+import amro from "./assets/amro.jpg";
 
 const BG = "#254152";
 
@@ -18,6 +20,7 @@ export let gameObjects = [];
 export let player;
 export let camera;
 export let map;
+let cutscene = null;
 
 // Bearbeitungsmodus
 // TODO Bearbeitungsmodus in eigene Datei?
@@ -129,7 +132,7 @@ export function input() {
   switchEditingButton.input();
   saveButton.input();
   if (showDeathScreen) respawnButton.input();
-  if (!editing && !showDeathScreen) {
+  if (!editing && !showDeathScreen && !cutscene) {
     gameObjects.forEach(obj => obj.input && obj.input());
   } else camera.input();
 }
@@ -147,14 +150,25 @@ function centerCamera() {
 export function update() {
   if (!isInitialized) return;
 
-  if (!editing && !showDeathScreen) {
+  if (!editing && !showDeathScreen && !cutscene) {
     map.update();
     gameObjects.forEach(obj => obj.update());
     centerCamera();
   }
+
+  gameObjects = gameObjects.filter(obj => !obj.dead);
+
+  if (cutscene) {
+    cutscene.update();
+    bgMusic.play();
+    if (cutscene.done) cutscene = null;
+  }
 }
 
 export function mouseDown(e) {
+  // Für Test
+  cutscene = new Cutscene(loadImage(amro));
+
   if (!isInitialized) return;
 
   if (editing) {
@@ -172,6 +186,7 @@ export function mouseDown(e) {
       const gridY = Math.floor((mouseY - camera.pos.y) / (16 * SCALE));
       if (mouseButton === LEFT) {
         if (keyIsDown(17)) {
+          // CTRL
           map.set(gridX, gridY, 0);
           e.preventDefault();
         } else {
@@ -311,8 +326,10 @@ export function draw() {
   pop();
 
   if (showDeathScreen) {
+    push();
     fill(0, 0, 0, 200);
     rect(0, 0, windowWidth, windowHeight);
+    pop();
 
     push();
     textAlign(CENTER);
@@ -320,11 +337,23 @@ export function draw() {
     strokeWeight(5);
     fill("#fff");
     textSize(50);
-    text("The big sad", windowWidth / 2, windowHeight / 2 - 50);
+    text("Du bist gestorben", windowWidth / 2, windowHeight / 2 - 50);
     pop();
     respawnButton.draw();
     bgMusic.stop();
     deathMusic.play();
+  }
+
+  if (cutscene) {
+    push();
+    fill(0, 0, 0, 200);
+    rect(0, 0, windowWidth, windowHeight);
+    pop();
+
+    push();
+    cutscene.draw();
+    pop();
+    bgMusic.stop();
   }
 
   // Debug Hilfslinien
