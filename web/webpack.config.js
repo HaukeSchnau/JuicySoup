@@ -6,6 +6,7 @@ module.exports = {
   devServer: {
     contentBase: "./dist",
     port: 3000,
+    //liveReload: false,
     proxy: { "/api/**": { target: "http://localhost:5000", secure: false } }
   },
   entry: "./src/index.js",

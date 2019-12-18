@@ -5,7 +5,9 @@ const SPEED = 0.5;
 class Camera {
   constructor() {
     this.pos = new Vector(0, 0);
+    this.posOffset = new Vector(0, 0);
     this.isBound = false;
+    this.shakeEndFrameCount = -1;
   }
 
   // Wird im Bearbeitungsmodus genutzt
@@ -25,6 +27,20 @@ class Camera {
     if (keyIsDown(40)) {
       // ARROW_DOWN
       this.move(0, -SPEED * deltaTime);
+    }
+  }
+
+  update() {
+    if (this.shakeEndFrameCount > frameCount) {
+      if (frameCount % 2 === 0) {
+        if (this.posOffset.x === 0) {
+          this.posOffset = new Vector(4, 0);
+        } else {
+          this.posOffset = this.posOffset.mul(-1);
+        }
+      }
+    } else {
+      this.posOffset = new Vector();
     }
   }
 
@@ -49,7 +65,7 @@ class Camera {
   bind() {
     if (!this.isBound) {
       // Bewegt das gesamte Spiel, um den Effekt einer Kamera zu erschaffen
-      translate(this.pos.x, this.pos.y);
+      translate(this.pos.x + this.posOffset.x, this.pos.y + this.posOffset.y);
       this.isBound = true;
     }
   }
@@ -58,9 +74,16 @@ class Camera {
   // Sollte aufgerufen werden, bevor HUD gezeichnet wird
   unbind() {
     if (this.isBound) {
-      translate(-this.pos.x, -this.pos.y);
+      translate(
+        -(this.pos.x + this.posOffset.x),
+        -(this.pos.y + this.posOffset.y)
+      );
       this.isBound = false;
     }
+  }
+
+  shake(shakeFrames) {
+    this.shakeEndFrameCount = frameCount + shakeFrames;
   }
 }
 

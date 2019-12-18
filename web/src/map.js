@@ -1,11 +1,45 @@
-import ground from "./assets/ground.png";
-import ground2 from "./assets/ground2.png";
+import grass from "./assets/ground.png";
+import dirt from "./assets/ground2.png";
 import rocks from "./assets/rocks.png";
-import bg from "./assets/bg1.jpg";
+import desert from "./assets/desert.png";
+import coal from "./assets/coal.png";
+import steinzeitBg from "./assets/steinzeit-bg.jpg";
+import desertBg from "./assets/desert-bg.png";
 import { SIZE } from "./constants";
 import Vector from "./vector";
-import Tiger from "./tiger";
 import * as Game from "./game";
+import Tiger from "./entities/tiger";
+import Mammut from "./entities/mammut";
+import Snake from "./entities/snake";
+import Chest from "./entities/chest";
+import bgMusicPath from "./assets/sheeran.mp3";
+import bgMusicDesertPath from "./assets/desertBg.mp3";
+import Sound from "./sound";
+
+const allSprites = {
+  grass: grass,
+  dirt: dirt,
+  rocks: rocks,
+  desert: desert,
+  coal: coal
+};
+
+const allEntities = {
+  tiger: Tiger,
+  mammut: Mammut,
+  snake: Snake,
+  chest: Chest
+};
+
+const allBackgrounds = {
+  steinzeit: steinzeitBg,
+  desert: desertBg
+};
+
+const allMusic = {
+  steinzeit: bgMusicPath,
+  desert: bgMusicDesertPath
+};
 
 class GameMap {
   static listMaps() {
@@ -19,29 +53,50 @@ class GameMap {
         map =>
           new GameMap(
             map.chunks,
-            map.monsters,
+            map.entities,
             map.spawnPoint,
             map.name,
-            map.backgroundImage
+            map.background,
+            map.sprites,
+            map.availableEntities,
+            map.music
           )
       );
   }
 
-  constructor(chunks, monsters, spawnPoint, name, backgroundImage) {
+  constructor(
+    chunks,
+    entities,
+    spawnPoint,
+    name,
+    background,
+    sprites,
+    availableEntities,
+    music
+  ) {
     this.chunks = chunks;
     this.name = name;
     this.spawnPoint = new Vector(spawnPoint.x, spawnPoint.y);
-    this.monsters = monsters.map(monster => {
-      switch (monster.type) {
-        case "tiger":
-          return new Tiger(this, monster.x, monster.y);
-      }
+    this.availableEntities = availableEntities;
+    this.availableEntities.forEach(m => {
+      allEntities[m].preload();
+    });
+    this.entities = entities.map(entity => {
+      return new allEntities[entity.type](this, new Vector(entity.x, entity.y));
     });
     this.tiles = [];
-    this.tiles[1] = loadImage(ground);
-    this.tiles[2] = loadImage(ground2);
-    this.tiles[3] = loadImage(rocks);
-    this.bg = loadImage(bg);
+    sprites.forEach((name, i) => {
+      this.tiles[i + 1] = loadImage(allSprites[name]);
+    });
+    this.bg = loadImage(allBackgrounds[background]);
+    this.bgMusic = new Sound(allMusic[music]);
+    this.bgMusic.setLoop(true);
+    this.bgMusic.play();
+    this.bgMusic.setVolume(0.1);
+  }
+
+  getEntity(type) {
+    return allEntities[type];
   }
 
   get(x, y) {
@@ -75,11 +130,29 @@ class GameMap {
   }
 
   drawBackground() {
-    image(this.bg, 0, 0, windowWidth, windowHeight);
+    let bgWidth = (this.bg.width / this.bg.height) * windowHeight;
+    bgWidth = Math.max(bgWidth, windowWidth);
+    image(
+      this.bg,
+      0, //Game.camera.pos.x * 0.1 - 128,
+      0,
+      bgWidth,
+      windowHeight
+    );
   }
 
   update() {
-    this.monsters.forEach(monster => monster.update());
+    this.entities.forEach(entity => {
+      if (
+        (entity.pos.x + entity.width) * SIZE < -Game.camera.pos.x ||
+        (entity.pos.y + entity.height) * SIZE < -Game.camera.pos.y ||
+        entity.pos.x * SIZE > -Game.camera.pos.x + windowWidth ||
+        entity.pos.y * SIZE > -Game.camera.pos.y + windowHeight
+      )
+        return;
+
+      entity.update();
+    });
   }
 
   draw() {
@@ -106,9 +179,16 @@ class GameMap {
         );
       });
     });
-    this.monsters.forEach(monster => {
+    this.entities.forEach(entity => {
+      if (
+        (entity.pos.x + entity.width) * SIZE < -Game.camera.pos.x ||
+        (entity.pos.y + entity.height) * SIZE < -Game.camera.pos.y ||
+        entity.pos.x * SIZE > -Game.camera.pos.x + windowWidth ||
+        entity.pos.y * SIZE > -Game.camera.pos.y + windowHeight
+      )
+        return;
       push();
-      monster.draw();
+      entity.draw();
       pop();
     });
   }

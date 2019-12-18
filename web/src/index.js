@@ -9,6 +9,7 @@ let currentScreen = MainMenu;
 // Mögliche screenNames sind zur Zeit: mainMenu, game
 // "game" nimmt in opts ein Objekt mit dem mapName an.
 window.switchScreen = async (screenName, opts) => {
+  currentScreen.dispose();
   switch (screenName) {
     case "mainMenu":
       currentScreen = MainMenu;

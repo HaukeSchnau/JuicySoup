@@ -6,11 +6,11 @@ import Camera from "./camera";
 import GameMap from "./map";
 import Button from "./button";
 import { SCALE, SIZE } from "./constants";
-import bgMusicPath from "./assets/sheeran.mp3";
 import deathMusicPath from "./assets/death.mp3";
 import Sound from "./sound";
 import Cutscene from "./cutscene";
 import amro from "./assets/amro.jpg";
+import Vector from "./vector";
 
 const BG = "#254152";
 
@@ -26,13 +26,14 @@ let cutscene = null;
 // TODO Bearbeitungsmodus in eigene Datei?
 let editing = false;
 let selectedBlock = 1;
+let selectedType = "block";
 
-let switchEditingButton, saveButton, respawnButton;
+let switchEditingButton, saveButton, respawnButton, backButton;
 let showDeathScreen = false;
 export let isInitialized = false;
 
 // Objekte zur Steuerung der Musik. Sie nutzen die Klasse Sound
-let bgMusic, deathMusic;
+let deathMusic;
 
 export function setShowDeathScreen(val) {
   showDeathScreen = val;
@@ -62,7 +63,14 @@ export async function init(mapName) {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ chunks: map.chunks })
+      body: JSON.stringify({
+        chunks: map.chunks,
+        entities: map.entities.map(m => ({
+          type: m.type,
+          x: m.initialPos.x,
+          y: m.initialPos.y
+        }))
+      })
     })
       .then(res => res.json())
       .then(res => {
@@ -71,6 +79,9 @@ export async function init(mapName) {
           setTimeout(() => (saveButton.text = "Karte speichern"), 2000);
         }
       });
+  });
+  backButton = new Button(430, 10, 200, 50, "Zurück", () => {
+    switchScreen("mainMenu");
   });
   respawnButton = new Button(
     windowWidth / 2 - 200 / 2,
@@ -82,13 +93,9 @@ export async function init(mapName) {
       showDeathScreen = false;
       player.respawn();
       deathMusic.stop();
-      bgMusic.play();
+      map.bgMusic.play();
     }
   );
-  bgMusic = new Sound(bgMusicPath);
-  bgMusic.setLoop(true);
-  bgMusic.play();
-  bgMusic.setVolume(0.3);
   deathMusic = new Sound(deathMusicPath);
   deathMusic.setLoop(true);
   deathMusic.setVolume(0.25);
@@ -100,9 +107,10 @@ export async function init(mapName) {
 // TODO umbenennen/umstrukturieren
 function getBlockBar() {
   const barTiles = map.tiles.slice(1); // Entfernt Luft aus der Liste der Blöcke
+  const barEntities = map.availableEntities;
   const spacing = 20;
   const blockSpacing = 10;
-  const numBlocks = barTiles.length;
+  const numBlocks = barTiles.length + barEntities.length;
   const blockSize = SIZE * 1.5;
   const width = (blockSize + blockSpacing) * numBlocks - blockSpacing;
   const height = blockSize;
@@ -113,6 +121,7 @@ function getBlockBar() {
   const realHeight = height + spacing;
   return {
     barTiles,
+    barEntities,
     spacing,
     blockSpacing,
     blockSize,
@@ -131,6 +140,7 @@ export function input() {
 
   switchEditingButton.input();
   saveButton.input();
+  backButton.input();
   if (showDeathScreen) respawnButton.input();
   if (!editing && !showDeathScreen && !cutscene) {
     gameObjects.forEach(obj => obj.input && obj.input());
@@ -147,11 +157,13 @@ function centerCamera() {
   );
 }
 
+let mouseWasDown = false;
 export function update() {
   if (!isInitialized) return;
 
   if (!editing && !showDeathScreen && !cutscene) {
     map.update();
+    camera.update();
     gameObjects.forEach(obj => obj.update());
     centerCamera();
   }
@@ -160,14 +172,15 @@ export function update() {
 
   if (cutscene) {
     cutscene.update();
-    bgMusic.play();
+    map.bgMusic.play();
     if (cutscene.done) cutscene = null;
   }
+  mouseWasDown = mouseIsPressed;
 }
 
 export function mouseDown(e) {
   // Für Test
-  cutscene = new Cutscene(loadImage(amro));
+  // cutscene = new Cutscene(loadImage(amro));
 
   if (!isInitialized) return;
 
@@ -190,7 +203,20 @@ export function mouseDown(e) {
           map.set(gridX, gridY, 0);
           e.preventDefault();
         } else {
-          map.set(gridX, gridY, selectedBlock);
+          if (selectedType === "block") {
+            map.set(gridX, gridY, selectedBlock);
+          } else if (selectedType === "entity") {
+            if (!mouseWasDown) {
+              const newEntity = new (map.getEntity(
+                map.availableEntities[selectedBlock - map.tiles.length]
+              ))(map, new Vector(gridX, gridY));
+              newEntity.pos = newEntity.pos.sub(
+                newEntity.width / 2,
+                newEntity.height - 1
+              );
+              map.entities.push(newEntity);
+            }
+          }
         }
       }
     } else {
@@ -211,6 +237,28 @@ export function mouseDown(e) {
           mouseY < blockY + blockBar.blockSize
         ) {
           selectedBlock = i + 1;
+          selectedType = "block";
+        }
+      });
+      blockBar.barEntities.forEach((entity, i) => {
+        i += blockBar.barTiles.length;
+        const blockX =
+          windowWidth / 2 -
+          blockBar.width / 2 +
+          i * (blockBar.blockSize + blockBar.blockSpacing);
+        const blockY =
+          windowHeight -
+          blockBar.height -
+          blockBar.yOffset -
+          blockBar.spacing / 2;
+        if (
+          mouseX > blockX &&
+          mouseY > blockY &&
+          mouseX < blockX + blockBar.blockSize &&
+          mouseY < blockY + blockBar.blockSize
+        ) {
+          selectedBlock = i + 1;
+          selectedType = "entity";
         }
       });
     }
@@ -309,20 +357,56 @@ export function draw() {
         pop();
       }
     });
+    blockBar.barEntities.forEach((entityName, i) => {
+      i += blockBar.barTiles.length;
+      image(
+        map.getEntity(entityName).sprites[0],
+        windowWidth / 2 -
+          blockBar.width / 2 +
+          i * (blockBar.blockSize + blockBar.blockSpacing),
+        windowHeight -
+          blockBar.height -
+          blockBar.yOffset -
+          blockBar.spacing / 2,
+        blockBar.blockSize,
+        blockBar.blockSize
+      );
+      if (i === selectedBlock - 1) {
+        push();
+        fill("#00000000");
+        strokeWeight(5);
+        rect(
+          windowWidth / 2 -
+            blockBar.width / 2 +
+            i * (blockBar.blockSize + blockBar.blockSpacing),
+          windowHeight -
+            blockBar.height -
+            blockBar.yOffset -
+            blockBar.spacing / 2,
+          blockBar.blockSize,
+          blockBar.blockSize
+        );
+        pop();
+      }
+    });
   }
 
   camera.unbind();
   switchEditingButton.draw();
   saveButton.draw();
+  backButton.draw();
   push();
   textSize(32);
+  textAlign(CENTER);
   text("Score: " + player.score, windowWidth / 2, 25);
+  text("Ammo: " + player.ammo, windowWidth / 2, 50);
   pop();
 
   push();
   textSize(50);
   fill("#fff");
-  text(Math.round(frameRate()) + " fps", windowWidth - 100, 50);
+  textAlign(RIGHT);
+  text(Math.round(frameRate()) + " fps", windowWidth - 10, 50);
   pop();
 
   if (showDeathScreen) {
@@ -340,7 +424,7 @@ export function draw() {
     text("Du bist gestorben", windowWidth / 2, windowHeight / 2 - 50);
     pop();
     respawnButton.draw();
-    bgMusic.stop();
+    map.bgMusic.stop();
     deathMusic.play();
   }
 
@@ -353,7 +437,7 @@ export function draw() {
     push();
     cutscene.draw();
     pop();
-    bgMusic.stop();
+    map.bgMusic.stop();
   }
 
   // Debug Hilfslinien
@@ -362,4 +446,8 @@ export function draw() {
   line(0, windowHeight / 2, windowWidth, windowHeight / 2);
   line(windowWidth / 2, 0, windowWidth / 2, windowHeight);
   */
+}
+
+export function dispose() {
+  map.bgMusic.stop();
 }

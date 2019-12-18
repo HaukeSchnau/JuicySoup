@@ -1,14 +1,19 @@
 import Vector from "./vector";
-import marioImg from "./assets/mario.png";
+import sprite1 from "./assets/char1.png";
+import sprite2 from "./assets/char2.png";
 import { collide } from "./physics";
-import { SCALE, SIZE } from "./constants";
+import { SIZE } from "./constants";
 import * as Game from "./game";
 import Bullet from "./bullet";
+
+const NORMAL_HEIGHT = 1.4;
+const DUCKED_HEIGHT = 1;
 
 class Player {
   constructor(map) {
     this.map = map;
-    this.sprite = loadImage(marioImg);
+    this.sprites = [loadImage(sprite1), loadImage(sprite2)];
+    this.currentSprite = 0;
     this.pos = Game.map.spawnPoint.copy();
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
@@ -17,6 +22,8 @@ class Player {
     this.maxHealth = 100;
     this.currentHealth = this.maxHealth;
     this.score = 0;
+    this.ammo = 30;
+    this.isControllable = true;
   }
 
   get width() {
@@ -24,11 +31,11 @@ class Player {
   }
 
   get height() {
-    return this.ducked ? 1 : 1.5;
+    return this.ducked ? DUCKED_HEIGHT : NORMAL_HEIGHT;
   }
 
   get speed() {
-    return this.ducked ? 0.005 : 0.0078125;
+    return this.ducked ? 0.005 : 0.009;
   }
 
   kill(entity) {
@@ -37,6 +44,8 @@ class Player {
   }
 
   input() {
+    if (!this.isControllable) return;
+
     if (keyIsDown(65)) {
       // LEFT
       this.direction = "left";
@@ -64,11 +73,12 @@ class Player {
       this.jumpForce = new Vector(0, 0.17);
     }
     if (keyIsDown(16)) {
-      if (!this.ducked) this.pos = this.pos.add(0, 0.5);
+      if (!this.ducked)
+        this.pos = this.pos.add(0, NORMAL_HEIGHT - DUCKED_HEIGHT);
       this.ducked = true;
     } else {
       if (this.ducked) {
-        const nextPos = this.pos.sub(0, 0.5);
+        const nextPos = this.pos.sub(0, NORMAL_HEIGHT - DUCKED_HEIGHT);
         const collision = collide(nextPos, this.width, this.height);
         if (!collision) {
           this.ducked = false;
@@ -78,24 +88,33 @@ class Player {
   }
 
   mouseClicked() {
-    const bulletSpeed = 0.3;
-    Game.gameObjects.push(
-      new Bullet(
-        this.pos.add(this.width / 2, this.height / 2),
-        new Vector(mouseX, mouseY)
-          .subV(Game.camera.pos)
-          .div(SIZE)
-          .subV(this.pos.add(this.width / 2, this.height / 2))
-          .normalize()
-          .mul(bulletSpeed)
-      )
-    );
+    if (this.ammo > 0) {
+      this.ammo--;
+      const bulletSpeed = 0.3;
+      Game.gameObjects.push(
+        new Bullet(
+          this.pos.add(this.width / 2, this.height / 2),
+          new Vector(mouseX, mouseY)
+            .subV(Game.camera.pos)
+            .div(SIZE)
+            .subV(this.pos.add(this.width / 2, this.height / 2))
+            .normalize()
+            .mul(bulletSpeed),
+          50
+        )
+      );
+    }
   }
 
   update() {
     if (this.currentHealth <= 0) {
       this.currentHealth = true;
       Game.setShowDeathScreen(true);
+    }
+
+    if (frameCount % 15 === 0) {
+      this.currentSprite++;
+      if (this.currentSprite >= this.sprites.length) this.currentSprite = 0;
     }
 
     const nextPos = this.pos.subV(this.jumpForce);
@@ -112,7 +131,7 @@ class Player {
       this.jumpForce = new Vector(0, 0);
     } else {
       this.jumpBlocked = true;
-      this.jumpForce = this.jumpForce.sub(0, 0.000546875 * deltaTime);
+      this.jumpForce = this.jumpForce.sub(0, 0.000546875 * 16);
       this.pos = nextPos;
     }
 
@@ -133,13 +152,14 @@ class Player {
     let height = SIZE * this.height;
 
     push();
-    if (this.direction === "right") {
+    if (this.direction === "left") {
       scale(-1, 1);
       x = -x - SIZE;
     }
 
-    image(this.sprite, x, y, width, height);
+    image(this.sprites[this.currentSprite], x, y, width, height);
     pop();
+    push();
     const healthBarWidth = 150;
     const healthBarHeight = 20;
     fill("#ff0000");
@@ -163,6 +183,7 @@ class Player {
       this.pos.x * SIZE + SIZE / 2,
       this.pos.y * SIZE - healthBarHeight + healthBarHeight / 2
     );
+    pop();
   }
 }
 

@@ -4,7 +4,7 @@ const Chunk = require("../models/chunk");
 const Map = require("../models/map");
 
 router.get("/", async (req, res) => {
-  const maps = await Map.find({}, "name");
+  const maps = await Map.find({}, "name").sort("level");
   res.json(maps);
 });
 
@@ -16,7 +16,9 @@ router.get("/:name", async (req, res) => {
 router.post("/:name", async (req, res) => {
   await Map.findOneAndUpdate(
     { name: req.params.name },
-    { $set: { chunks: req.body.chunks } },
+    {
+      $set: { chunks: req.body.chunks || [], entities: req.body.entities || [] }
+    },
     {
       upsert: true
     }

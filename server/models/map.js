@@ -1,10 +1,13 @@
 const mongoose = require("mongoose");
 
 const MapSchema = mongoose.Schema({
+  level: Number,
   name: String,
+  sprites: [String],
   spawnPoint: { x: Number, y: Number },
   backgroundImage: String,
-  monsters: [
+  availableEntities: [String],
+  entities: [
     {
       type: { type: String },
       maxHealth: Number,

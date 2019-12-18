@@ -53,3 +53,5 @@ export function draw() {
     pop();
   }
 }
+
+export function dispose() {}
