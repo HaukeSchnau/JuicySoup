@@ -1,3 +1,5 @@
+// Quelle: https://github.com/danro/jquery-easing/blob/master/jquery.easing.js
+
 export function easeOutElastic(t, b, c, d) {
   var s = 1.70158;
   var p = 0;
@@ -9,11 +11,7 @@ export function easeOutElastic(t, b, c, d) {
     a = c;
     var s = p / 4;
   } else var s = (p / (2 * Math.PI)) * Math.asin(c / a);
-  return (
-    a * Math.pow(2, -10 * t) * Math.sin(((t * d - s) * (2 * Math.PI)) / p) +
-    c +
-    b
-  );
+  return a * Math.pow(2, -10 * t) * Math.sin(((t * d - s) * (2 * Math.PI)) / p) + c + b;
 }
 
 export function easeInCubic(t, b, c, d) {

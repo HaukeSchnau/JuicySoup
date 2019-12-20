@@ -13,27 +13,32 @@ class Entity {
     this.height = height;
     this.width = width;
     this.dead = false;
+    this.noPhysics = false;
+    this.distanceTraveled = 0;
   }
 
   update() {
     if (this.dead) return;
 
-    const nextPos = this.pos.subV(this.jumpForce);
-    const collision = collide(nextPos, this.width, this.height);
-    if (collision) {
-      const headCollision = collision.subV(this.pos).y < 0;
+    if (!this.noPhysics) {
+      const nextPos = this.pos.subV(this.jumpForce);
+      const collision = collide(nextPos, this.width, this.height);
+      if (collision) {
+        const headCollision = collision.subV(this.pos).y < 0;
 
-      if (headCollision) {
-        this.pos.y = collision.y + 1;
+        if (headCollision) {
+          this.pos.y = collision.y + 1;
+        } else {
+          this.pos.y = collision.y - this.height;
+          this.jumpBlocked = false;
+        }
+        this.jumpForce = new Vector(0, 0);
       } else {
-        this.pos.y = collision.y - this.height;
-        this.jumpBlocked = false;
+        this.jumpBlocked = true;
+        this.jumpForce = this.jumpForce.sub(0, 0.000546875 * deltaTime);
+        this.pos = nextPos;
+        this.distanceTraveled += this.jumpForce.length();
       }
-      this.jumpForce = new Vector(0, 0);
-    } else {
-      this.jumpBlocked = true;
-      this.jumpForce = this.jumpForce.sub(0, 0.000546875 * deltaTime);
-      this.pos = nextPos;
     }
   }
 

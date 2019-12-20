@@ -14,7 +14,9 @@ const MapSchema = mongoose.Schema({
       x: Number,
       y: Number,
       width: Number,
-      height: Number
+      height: Number,
+      noPhysics: Boolean,
+      rot: Number
     }
   ],
   chunks: [

@@ -1,6 +1,8 @@
 import { SIZE } from "./constants";
 import { easeInCubic } from "./easing";
 
+// Fliegender Text, der nach einiger Zeit verschwindet.
+// Wird beim Öffnen von Kisten verwendet
 class FloatingText {
   constructor(text, initialPos, maxTime) {
     this.text = text;

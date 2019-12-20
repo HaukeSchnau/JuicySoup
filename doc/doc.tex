@@ -1,6 +1,14 @@
 \documentclass[12pt]{report}
 \usepackage[ngerman]{babel}
 
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+}
+
 \begin{document}
 \begin{titlepage}
     \centering
@@ -27,17 +35,36 @@
     \chapter{Unser Spiel}
 
     \section{Die Idee}
+    Juicy Soup ist ein Spiel mit historischem Inhalt. Man spielt einen Zeitreisenden,
+    der in der Vergangenheit gestrandet ist und versucht, wieder in die Gegenwart
+    zu kommen. Dafür muss er Gegenstände aus der jeweiligen Zeit finden, um
+    seine Zeitmaschine zu reparieren.
 
     \section{Anleitung}
+    Nachdem man ein Level ausgewählt hat, kann man seinen Charakter mit den
+    Tasten A und D nach links und rechts steuern. Mit der Leertaste springt man,
+    mit Shift duckt man sich. Wenn man eine Waffe ausgewählt hat, kann man mit der
+    Maus in Richtung des Mauszeigers schießen.
+    Das Ziel ist auf der rechten Seite.
 
     \section{Warum serious?}
-
+    Das Spiel ist serious, weil man beim Spielen auf spielerische Art
+    etwas über die dargestellten Zeitalter lernt. Wir möchten den Spielern
+    mit spaßigen Methoden mehr über die damaligen Helden und Bösewichte näher
+    bringen.
 
     \chapter{Grundlagen der Algorithmik}
 
     \section{Was ist ein Algorithmus?}
+    Ein Algorithmus ist eine Folge von Anweisungen, die eine vorher bestimmte
+    Aufgabe erledigen. Er muss bei denselben Eingabewerten immer die selben 
+    Ausgabewerte produzieren.
 
     \section{Was ist ein Programm?}
+    Ein Programm ist eine Ansammlung von Algorithmen, die zusammenwirken.
+    Der Nutzer/Anwender des Programms kann kann ihm beispielsweise über
+    Kommandozeilenargumente oder eine Schnittstelle wie Maus oder Tastatur
+    Eingabewerte übermitteln.
 
     \section{Was braucht man zum Programmieren?}
     Zum Programmieren braucht man einen Computer, auf dem zumindest ein
@@ -53,6 +80,11 @@
     Sie ist besonders an Künstler, Designer, Lehrer und Anfänger gerichtet.
 
     \section{Was sind Variablen und Datentypen?}
+    In Variablen kann ein Programm Werte speichern, verändern und abrufen.
+    Die Variablen haben dabei immer einen Datentyp wie z.B. \texttt{String},
+    \texttt{boolean}, \texttt{int}, \texttt{Array} und viele mehr. Bei den
+    meisten Programmiersprachen muss man den Datentyp beim deklarieren der
+    Variable mit angeben. Das ist bei JavaScript jedoch nicht nötig.
 
     \section{Was sind Kontrollstrukturen?}
     Kontrollstrukturen beeinflussen den Ablauf eines Programms.
@@ -68,19 +100,77 @@
     Dazu gibt es noch die \texttt{for-each} Schleife, die über ein Array iteriert.
 
     \section{Was sind Funktionen und Objekte?}
-    Funktionen
+    Funktionen werden genutzt, um Code zu strukturieren und wiederzuverwenden.
+    Ein Ablauf, der oft gleich oder sehr ähnlich ausgeführt wird, kann in eine
+    Funktion abgekapselt werden, um den Code übersichtlicher und leichter
+    lesbar zu machen.
+
+    Objekte sind ähnlich wie Funktionen nützlich, um Struktur in den Code zu 
+    bringen. Sie werden genutzt, um ähnliche Variablen in einer zu bündeln und
+    bestehen aus Key/Value paaren. Ein Objekt, das ein Rechteck beschreibt,
+    kann die Attribute \texttt{x}, \texttt{y}, \texttt{breite}, 
+    \texttt{höhe} und \texttt{farbe} haben.
 
     \chapter{Organisation der Gruppenarbeit}
 
     \section{Verlauf der Projektarbeit}
-
-    \section{Probleme}
+    Nachdem wir gemeinsam unsere Idee festgelegt hatten, schrieben wir die
+    ersten Zeilen. Der Prototyp, der dabei entstand ähnelte einem Super Mario
+    Spiel. Nachdem erste Kollisionsabfragen und Physik implementiert waren,
+    war es Zeit für einen Map-Editor, damit man die Level nicht von Hand in eine
+    JSON-Datei schreiben muss. Dann wurden Grafiken für das Spiel rausgsucht,
+    Level designt und Items, Gegner und Helfer einprogrammiert. Und natürlich
+    wurden währenddessen ständig auch noch Bugs gefixt.
 
     \section{Aufgabenverteilung}
-
+    \begin{itemize}
+        \item Hauke
+        \begin{itemize}
+            \item Großteil des Codes geschrieben
+            \item Kapitel 2 ,,Grundlagen der Algorithmik'' verfasst
+        \end{itemize}
+        \item Pascal
+        \begin{itemize}
+            \item Grafiken rasugesucht
+            \item Level Design
+            \item Fazit verfasst
+        \end{itemize}
+        \item Leon
+        \begin{itemize}
+            \item Musik rausgesucht
+            \item Teile des Codes geschrieben
+            \item Kaptitel 1 ,,Unser Spiel'' verfasst
+        \end{itemize}
+        \item Amro
+        \begin{itemize}
+            \item Namensschöpfer
+            \item Kapitel 3 ,,Organisation der Gruppenarbeit'' verfasst
+            \item mentale Unterstützung
+        \end{itemize}
+    \end{itemize}
 
     \chapter{Fazit}
+    Wir sind mit unserem Ergebnis sehr zufrieden, auch wenn wir nicht alle
+    Level fertigstellen konnten. Leider muss man zurzeit noch springen, um
+    den Speer werfen zu können.
+    
+    Unser größtes Problem war, dass wir uns so viel
+    vorgenommen hatten, dass wir nicht alles in dem Zeitraum erledigen konnten.
+    Ein weiteres Hindernis waren die Grafiken, da keiner von uns künstlerisch
+    sehr begabt ist. Der Mangel an Grafiken lag nicht zuletzt daran, dass unsere
+    Arbeitsteilung zumindest zu Beginn miserabel war. Sobald wir uns jedoch
+    jeden Tag online getroffen haben, ging es voran und alle arbeiteten am
+    Projekt. Wir nutzten das Live Share Plugin von Visual Studio Code, damit wir
+    alle gleichzeitig Code schreiben, das Spiel spielen und Assets einfügen konnten.
+    Die größte technische Hürde war die Kollisionserkennung. Sowohl die zwischen zwei
+    achsenparallelen Rechtecken, besonders aber die zwischen rotierten Rechtecken
+    machte uns zu Schaffen.
+
+    Wenn wir an dem Spiel weiterarbeiten könnten, würden wir alle weiteren
+    Gegner, NPCs und Level in das Spiel einfügen.
 
     \chapter{Quellenverzeichnis}
+    \url{https://p5js.org}
+    \url{https://www.codeproject.com/Articles/15573/2D-Polygon-Collision-Detection}
     
 \end{document}

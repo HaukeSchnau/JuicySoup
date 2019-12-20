@@ -11,6 +11,7 @@ import Sound from "./sound";
 import Cutscene from "./cutscene";
 import amro from "./assets/amro.jpg";
 import Vector from "./vector";
+import Hotbar from "./hotbar";
 
 const BG = "#254152";
 
@@ -20,13 +21,15 @@ export let gameObjects = [];
 export let player;
 export let camera;
 export let map;
-let cutscene = null;
+export let cutscenes = [];
+let isCleared = false;
 
 // Bearbeitungsmodus
 // TODO Bearbeitungsmodus in eigene Datei?
 let editing = false;
 let selectedBlock = 1;
 let selectedType = "block";
+let editingHotbar;
 
 let switchEditingButton, saveButton, respawnButton, backButton;
 let showDeathScreen = false;
@@ -39,9 +42,33 @@ export function setShowDeathScreen(val) {
   showDeathScreen = val;
 }
 
+export function setCleared(val) {
+  isCleared = val;
+}
+
+// Wird zu Beginn des Spiels aufgerufen
 export async function init(mapName) {
   camera = new Camera();
   map = await GameMap.fetchFromName(mapName);
+  editingHotbar = new Hotbar(
+    (item, i) => {
+      if (i < map.tiles.slice(1).length) {
+        return item;
+      } else {
+        return map.getEntity(item).sprites[0];
+      }
+    },
+    (item, i) => {
+      if (i < map.tiles.slice(1).length) {
+        selectedBlock = i + 1;
+        selectedType = "block";
+      } else {
+        selectedBlock = i + 1;
+        selectedType = "entity";
+      }
+    }
+  );
+  editingHotbar.items = map.tiles.slice(1).concat(map.availableEntities);
   player = new Player(map);
   gameObjects = [player];
   switchEditingButton = new Button(
@@ -142,9 +169,16 @@ export function input() {
   saveButton.input();
   backButton.input();
   if (showDeathScreen) respawnButton.input();
-  if (!editing && !showDeathScreen && !cutscene) {
-    gameObjects.forEach(obj => obj.input && obj.input());
-  } else camera.input();
+  if (!editing && !showDeathScreen && !cutscenes.length) {
+    if (player.hotbar.isMouseInHotbar) {
+      player.hotbar.input();
+    } else {
+      gameObjects.forEach(obj => obj.input && obj.input());
+    }
+  } else if (editing) {
+    camera.input();
+    editingHotbar.input();
+  }
 }
 
 // Zentriert die Kamera auf den Spieler
@@ -161,7 +195,13 @@ let mouseWasDown = false;
 export function update() {
   if (!isInitialized) return;
 
-  if (!editing && !showDeathScreen && !cutscene) {
+  if (isCleared && !cutscenes.length) {
+    switchScreen("mainMenu");
+    isCleared = false;
+    return;
+  }
+
+  if (!editing && !showDeathScreen && !cutscenes.length) {
     map.update();
     camera.update();
     gameObjects.forEach(obj => obj.update());
@@ -170,31 +210,18 @@ export function update() {
 
   gameObjects = gameObjects.filter(obj => !obj.dead);
 
-  if (cutscene) {
-    cutscene.update();
-    map.bgMusic.play();
-    if (cutscene.done) cutscene = null;
+  if (cutscenes.length) {
+    cutscenes[0].update();
+    if (cutscenes[0].done) cutscenes.splice(0, 1);
   }
   mouseWasDown = mouseIsPressed;
 }
 
 export function mouseDown(e) {
-  // Für Test
-  // cutscene = new Cutscene(loadImage(amro));
-
   if (!isInitialized) return;
 
   if (editing) {
-    const blockBar = getBlockBar();
-
-    if (
-      !(
-        mouseX > blockBar.x &&
-        mouseX < blockBar.x + blockBar.realWidth &&
-        mouseY > blockBar.y &&
-        mouseY < blockBar.y + blockBar.realHeight
-      )
-    ) {
+    if (!editingHotbar.isMouseInHotbar) {
       const gridX = Math.floor((mouseX - camera.pos.x) / (16 * SCALE));
       const gridY = Math.floor((mouseY - camera.pos.y) / (16 * SCALE));
       if (mouseButton === LEFT) {
@@ -210,57 +237,12 @@ export function mouseDown(e) {
               const newEntity = new (map.getEntity(
                 map.availableEntities[selectedBlock - map.tiles.length]
               ))(map, new Vector(gridX, gridY));
-              newEntity.pos = newEntity.pos.sub(
-                newEntity.width / 2,
-                newEntity.height - 1
-              );
+              newEntity.pos = newEntity.pos.sub(newEntity.width / 2, newEntity.height - 1);
               map.entities.push(newEntity);
             }
           }
         }
       }
-    } else {
-      blockBar.barTiles.forEach((tile, i) => {
-        const blockX =
-          windowWidth / 2 -
-          blockBar.width / 2 +
-          i * (blockBar.blockSize + blockBar.blockSpacing);
-        const blockY =
-          windowHeight -
-          blockBar.height -
-          blockBar.yOffset -
-          blockBar.spacing / 2;
-        if (
-          mouseX > blockX &&
-          mouseY > blockY &&
-          mouseX < blockX + blockBar.blockSize &&
-          mouseY < blockY + blockBar.blockSize
-        ) {
-          selectedBlock = i + 1;
-          selectedType = "block";
-        }
-      });
-      blockBar.barEntities.forEach((entity, i) => {
-        i += blockBar.barTiles.length;
-        const blockX =
-          windowWidth / 2 -
-          blockBar.width / 2 +
-          i * (blockBar.blockSize + blockBar.blockSpacing);
-        const blockY =
-          windowHeight -
-          blockBar.height -
-          blockBar.yOffset -
-          blockBar.spacing / 2;
-        if (
-          mouseX > blockX &&
-          mouseY > blockY &&
-          mouseX < blockX + blockBar.blockSize &&
-          mouseY < blockY + blockBar.blockSize
-        ) {
-          selectedBlock = i + 1;
-          selectedType = "entity";
-        }
-      });
     }
   }
 }
@@ -301,15 +283,7 @@ export function draw() {
   });
 
   if (editing) {
-    const blockBar = getBlockBar();
-
-    if (
-      mouseX > blockBar.x &&
-      mouseX < blockBar.x + blockBar.realWidth &&
-      mouseY > blockBar.y &&
-      mouseY < blockBar.y + blockBar.realHeight
-    ) {
-    } else {
+    if (!editingHotbar.isMouseInHotbar) {
       push();
       const gridX = Math.floor((mouseX - camera.pos.x) / (16 * SCALE));
       const gridY = Math.floor((mouseY - camera.pos.y) / (16 * SCALE));
@@ -323,75 +297,12 @@ export function draw() {
     }
 
     camera.unbind();
-    stroke("#000");
-    fill("#fff");
-    rect(blockBar.x, blockBar.y, blockBar.realWidth, blockBar.realHeight, 20);
-    blockBar.barTiles.forEach((tile, i) => {
-      image(
-        tile,
-        windowWidth / 2 -
-          blockBar.width / 2 +
-          i * (blockBar.blockSize + blockBar.blockSpacing),
-        windowHeight -
-          blockBar.height -
-          blockBar.yOffset -
-          blockBar.spacing / 2,
-        blockBar.blockSize,
-        blockBar.blockSize
-      );
-      if (i === selectedBlock - 1) {
-        push();
-        fill("#00000000");
-        strokeWeight(5);
-        rect(
-          windowWidth / 2 -
-            blockBar.width / 2 +
-            i * (blockBar.blockSize + blockBar.blockSpacing),
-          windowHeight -
-            blockBar.height -
-            blockBar.yOffset -
-            blockBar.spacing / 2,
-          blockBar.blockSize,
-          blockBar.blockSize
-        );
-        pop();
-      }
-    });
-    blockBar.barEntities.forEach((entityName, i) => {
-      i += blockBar.barTiles.length;
-      image(
-        map.getEntity(entityName).sprites[0],
-        windowWidth / 2 -
-          blockBar.width / 2 +
-          i * (blockBar.blockSize + blockBar.blockSpacing),
-        windowHeight -
-          blockBar.height -
-          blockBar.yOffset -
-          blockBar.spacing / 2,
-        blockBar.blockSize,
-        blockBar.blockSize
-      );
-      if (i === selectedBlock - 1) {
-        push();
-        fill("#00000000");
-        strokeWeight(5);
-        rect(
-          windowWidth / 2 -
-            blockBar.width / 2 +
-            i * (blockBar.blockSize + blockBar.blockSpacing),
-          windowHeight -
-            blockBar.height -
-            blockBar.yOffset -
-            blockBar.spacing / 2,
-          blockBar.blockSize,
-          blockBar.blockSize
-        );
-        pop();
-      }
-    });
+    editingHotbar.draw();
+  } else {
+    camera.unbind();
+    player.hotbar.draw();
   }
 
-  camera.unbind();
   switchEditingButton.draw();
   saveButton.draw();
   backButton.draw();
@@ -399,7 +310,7 @@ export function draw() {
   textSize(32);
   textAlign(CENTER);
   text("Score: " + player.score, windowWidth / 2, 25);
-  text("Ammo: " + player.ammo, windowWidth / 2, 50);
+  text("Ammo: " + player.hotbar.items[0].usesLeft, windowWidth / 2, 50);
   pop();
 
   push();
@@ -428,16 +339,15 @@ export function draw() {
     deathMusic.play();
   }
 
-  if (cutscene) {
+  if (cutscenes.length) {
     push();
     fill(0, 0, 0, 200);
     rect(0, 0, windowWidth, windowHeight);
     pop();
 
     push();
-    cutscene.draw();
+    cutscenes[0].draw();
     pop();
-    map.bgMusic.stop();
   }
 
   // Debug Hilfslinien
@@ -448,6 +358,6 @@ export function draw() {
   */
 }
 
-export function dispose() {
-  map.bgMusic.stop();
+export async function dispose() {
+  await map.bgMusic.stop();
 }

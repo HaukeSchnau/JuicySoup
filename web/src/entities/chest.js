@@ -16,11 +16,11 @@ class Chest extends Entity {
     super.update();
     if (entitiesCollide(this, Game.player) && !this.open) {
       this.open = true;
-      this.currentSprite = 1;
-      Game.player.ammo += 20;
-      Game.gameObjects.push(
-        new FloatingText("+20 ammo", this.pos.add(this.width / 2, -0.2), 2)
-      );
+      this.currentSprite = 1; // geöffnete Kiste
+      // Gibt bisher nur Munition
+      // In Zukunft vielleicht Items?
+      Game.player.hotbar.items[0].usesLeft += 20;
+      Game.gameObjects.push(new FloatingText("+20 ammo", this.pos.add(this.width / 2, -0.2), 2));
     }
   }
 }

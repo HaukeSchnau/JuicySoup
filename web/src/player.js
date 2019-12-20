@@ -5,6 +5,8 @@ import { collide } from "./physics";
 import { SIZE } from "./constants";
 import * as Game from "./game";
 import Bullet from "./bullet";
+import Gun from "./entities/gun";
+import Hotbar from "./hotbar";
 
 const NORMAL_HEIGHT = 1.4;
 const DUCKED_HEIGHT = 1;
@@ -12,9 +14,11 @@ const DUCKED_HEIGHT = 1;
 class Player {
   constructor(map) {
     this.map = map;
+    Gun.preload();
     this.sprites = [loadImage(sprite1), loadImage(sprite2)];
     this.currentSprite = 0;
     this.pos = Game.map.spawnPoint.copy();
+    // Vektor, der die Jump- bzw. Fallkraft angibt. Es hätte wahrscheinlich mehr Sinn gemacht, einfach eine Zahl dafür zu verwenden, da nur die y-Komponente des Vektors genutzt wird.
     this.jumpForce = new Vector(0, 0);
     this.jumpBlocked = false;
     this.ducked = false;
@@ -22,8 +26,12 @@ class Player {
     this.maxHealth = 100;
     this.currentHealth = this.maxHealth;
     this.score = 0;
-    this.ammo = 30;
+    // Sperrt die Steuerung
     this.isControllable = true;
+    // Leiste mit Gegenständen
+    this.hotbar = new Hotbar(e => e.hotbarSprite);
+    this.hotbar.items = [new Gun()];
+    this.mouseWasPressed = false;
   }
 
   get width() {
@@ -73,10 +81,11 @@ class Player {
       this.jumpForce = new Vector(0, 0.17);
     }
     if (keyIsDown(16)) {
-      if (!this.ducked)
-        this.pos = this.pos.add(0, NORMAL_HEIGHT - DUCKED_HEIGHT);
+      // SHIFT
+      if (!this.ducked) this.pos = this.pos.add(0, NORMAL_HEIGHT - DUCKED_HEIGHT);
       this.ducked = true;
     } else {
+      // verhindert, dass der Spieler in einen Block über ihm glitcht.
       if (this.ducked) {
         const nextPos = this.pos.sub(0, NORMAL_HEIGHT - DUCKED_HEIGHT);
         const collision = collide(nextPos, this.width, this.height);
@@ -85,25 +94,19 @@ class Player {
         }
       }
     }
-  }
 
-  mouseClicked() {
-    if (this.ammo > 0) {
-      this.ammo--;
-      const bulletSpeed = 0.3;
-      Game.gameObjects.push(
-        new Bullet(
-          this.pos.add(this.width / 2, this.height / 2),
-          new Vector(mouseX, mouseY)
-            .subV(Game.camera.pos)
-            .div(SIZE)
-            .subV(this.pos.add(this.width / 2, this.height / 2))
-            .normalize()
-            .mul(bulletSpeed),
-          50
-        )
-      );
+    // Item benutzen
+    if (mouseIsPressed && !this.mouseWasPressed) {
+      if (this.hotbar.selectedItem ? this.hotbar.selectedItem.usesLeft : 0 > 0) {
+        this.hotbar.selectedItem.usesLeft--;
+        this.hotbar.selectedItem.use();
+        if (this.hotbar.selectedItem.usesLeft <= 0 && !this.hotbar.selectedItem.unremovable) {
+          this.hotbar.items = this.hotbar.items.filter(e => e !== this.hotbar.selectedItem);
+        }
+      }
     }
+
+    this.mouseWasPressed = mouseIsPressed;
   }
 
   update() {
@@ -112,11 +115,13 @@ class Player {
       Game.setShowDeathScreen(true);
     }
 
+    // Setzt Laufanimation fort
     if (frameCount % 15 === 0) {
       this.currentSprite++;
       if (this.currentSprite >= this.sprites.length) this.currentSprite = 0;
     }
 
+    // Schwerkraft und Kollisionserkennung mit Boden
     const nextPos = this.pos.subV(this.jumpForce);
     const collision = collide(nextPos, this.width, this.height);
     if (collision) {
@@ -135,6 +140,7 @@ class Player {
       this.pos = nextPos;
     }
 
+    // Tötet Spieler, wenn er zu tief fällt.
     if (this.pos.y > 50) {
       Game.setShowDeathScreen(true);
     }
@@ -152,13 +158,17 @@ class Player {
     let height = SIZE * this.height;
 
     push();
+    // Spiegelt Sprite von Spieler je nach Laufrichtung
     if (this.direction === "left") {
       scale(-1, 1);
       x = -x - SIZE;
     }
 
+    // Zeichnet Spieler
     image(this.sprites[this.currentSprite], x, y, width, height);
     pop();
+
+    //Lebensleiste
     push();
     const healthBarWidth = 150;
     const healthBarHeight = 20;

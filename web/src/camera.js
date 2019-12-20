@@ -74,14 +74,13 @@ class Camera {
   // Sollte aufgerufen werden, bevor HUD gezeichnet wird
   unbind() {
     if (this.isBound) {
-      translate(
-        -(this.pos.x + this.posOffset.x),
-        -(this.pos.y + this.posOffset.y)
-      );
+      translate(-(this.pos.x + this.posOffset.x), -(this.pos.y + this.posOffset.y));
       this.isBound = false;
     }
   }
 
+  // Wackel-Effekt
+  // Wird in der Mammuthöhle verwendet
   shake(shakeFrames) {
     this.shakeEndFrameCount = frameCount + shakeFrames;
   }

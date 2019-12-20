@@ -10,6 +10,11 @@ class Vector {
     return new Vector(this.x, this.y);
   }
 
+  // Berechne Skalarprodukt
+  dot(r) {
+    return this.x * r.x + this.y * r.y;
+  }
+
   // Berechne Länge des Vektors mit Satz des Pythagoras
   length() {
     return Math.sqrt(this.x * this.x + this.y * this.y);

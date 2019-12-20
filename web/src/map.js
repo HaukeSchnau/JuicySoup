@@ -8,44 +8,64 @@ import desertBg from "./assets/desert-bg.png";
 import { SIZE } from "./constants";
 import Vector from "./vector";
 import * as Game from "./game";
-import Tiger from "./entities/tiger";
-import Mammut from "./entities/mammut";
-import Snake from "./entities/snake";
+import Tiger from "./entities/monsters/tiger";
+import Mammut from "./entities/monsters/mammut";
+import Snake from "./entities/monsters/snake";
+import Fred from "./entities/npcs/fred";
 import Chest from "./entities/chest";
 import bgMusicPath from "./assets/sheeran.mp3";
 import bgMusicDesertPath from "./assets/desertBg.mp3";
+import medievalMusicPath from "./assets/medieval.mp3";
 import Sound from "./sound";
+import Spear from "./entities/spear";
+import wood from "./assets/wood.png";
+import medieval1 from "./assets/medieval1.png";
+import medieval2 from "./assets/medieval2.png";
+import medieval3 from "./assets/medieval3.png";
+import medieval4 from "./assets/medieval4.png";
+import medievalBg from "./assets/medieval.jpg";
 
 const allSprites = {
   grass: grass,
   dirt: dirt,
   rocks: rocks,
   desert: desert,
-  coal: coal
+  coal: coal,
+  wood,
+  medieval1,
+  medieval2,
+  medieval3,
+  medieval4
 };
 
 const allEntities = {
   tiger: Tiger,
   mammut: Mammut,
   snake: Snake,
-  chest: Chest
+  chest: Chest,
+  spear: Spear,
+  fred: Fred
 };
 
 const allBackgrounds = {
   steinzeit: steinzeitBg,
-  desert: desertBg
+  desert: desertBg,
+  medieval: medievalBg
 };
 
 const allMusic = {
   steinzeit: bgMusicPath,
-  desert: bgMusicDesertPath
+  desert: bgMusicDesertPath,
+  medieval: medievalMusicPath
 };
 
 class GameMap {
+  // Holt Liste der Maps vom Server
   static listMaps() {
     return fetch("/api/map").then(res => res.json());
   }
 
+  // Holt Map vom Server und erstellt ein neues Map Objekt
   static fetchFromName(name) {
     return fetch(`/api/map/${name}`)
       .then(res => res.json())
@@ -64,27 +84,21 @@ class GameMap {
       );
   }
 
-  constructor(
-    chunks,
-    entities,
-    spawnPoint,
-    name,
-    background,
-    sprites,
-    availableEntities,
-    music
-  ) {
+  constructor(chunks, entities, spawnPoint, name, background, sprites, availableEntities, music) {
     this.chunks = chunks;
     this.name = name;
     this.spawnPoint = new Vector(spawnPoint.x, spawnPoint.y);
     this.availableEntities = availableEntities;
+    // Lade alle Sprites für potentielle Entities in dieser Map, um spätere Ladezeiten zu vermeiden
     this.availableEntities.forEach(m => {
       allEntities[m].preload();
     });
     this.entities = entities.map(entity => {
-      return new allEntities[entity.type](this, new Vector(entity.x, entity.y));
+      const { type, x, y, ...rest } = entity;
+      return new allEntities[type](this, new Vector(x, y), rest);
     });
     this.tiles = [];
+    // Lädt die Kacheln
     sprites.forEach((name, i) => {
       this.tiles[i + 1] = loadImage(allSprites[name]);
     });
@@ -99,11 +113,10 @@ class GameMap {
     return allEntities[type];
   }
 
+  // Gibt den Block als Integer an den gegebenen Koordinaten zurück
   get(x, y) {
     const chunkPos = new Vector(x, y).div(16).floor();
-    let chunk = this.chunks.find(
-      chunk => chunk.x === chunkPos.x && chunk.y === chunkPos.y
-    );
+    let chunk = this.chunks.find(chunk => chunk.x === chunkPos.x && chunk.y === chunkPos.y);
     if (!chunk) {
       chunk = { x: chunkPos.x, y: chunkPos.y, data: [] };
       this.chunks.push(chunk);
@@ -114,11 +127,10 @@ class GameMap {
     return chunk.data[index];
   }
 
+  // Setzt den Block an den gegebenen Koordinaten. tileId ist ein Integer.
   set(x, y, tileId) {
     const chunkPos = new Vector(x, y).div(16).floor();
-    let chunk = this.chunks.find(
-      chunk => chunk.x === chunkPos.x && chunk.y === chunkPos.y
-    );
+    let chunk = this.chunks.find(chunk => chunk.x === chunkPos.x && chunk.y === chunkPos.y);
     if (!chunk) {
       chunk = { x: chunkPos.x, y: chunkPos.y, data: [] };
       this.chunks.push(chunk);
@@ -129,6 +141,7 @@ class GameMap {
     chunk.data[index] = tileId;
   }
 
+  // Zeichnet das Hintergrundbild
   drawBackground() {
     let bgWidth = (this.bg.width / this.bg.height) * windowHeight;
     bgWidth = Math.max(bgWidth, windowWidth);
@@ -143,19 +156,12 @@ class GameMap {
 
   update() {
     this.entities.forEach(entity => {
-      if (
-        (entity.pos.x + entity.width) * SIZE < -Game.camera.pos.x ||
-        (entity.pos.y + entity.height) * SIZE < -Game.camera.pos.y ||
-        entity.pos.x * SIZE > -Game.camera.pos.x + windowWidth ||
-        entity.pos.y * SIZE > -Game.camera.pos.y + windowHeight
-      )
-        return;
-
       entity.update();
     });
   }
 
   draw() {
+    // Zeichnet die Kacheln
     this.chunks.forEach(chunk => {
       const chunkPos = new Vector(chunk.x, chunk.y).mul(16);
       chunk.data.forEach((tile, i) => {
@@ -170,15 +176,11 @@ class GameMap {
         )
           return;
 
-        image(
-          this.tiles[tile],
-          (x + chunkPos.x) * SIZE,
-          (y + chunkPos.y) * SIZE,
-          SIZE,
-          SIZE
-        );
+        image(this.tiles[tile], (x + chunkPos.x) * SIZE, (y + chunkPos.y) * SIZE, SIZE, SIZE);
       });
     });
+
+    // Zeichnet die Entities
     this.entities.forEach(entity => {
       if (
         (entity.pos.x + entity.width) * SIZE < -Game.camera.pos.x ||

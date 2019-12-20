@@ -9,7 +9,7 @@ let currentScreen = MainMenu;
 // Mögliche screenNames sind zur Zeit: mainMenu, game
 // "game" nimmt in opts ein Objekt mit dem mapName an.
 window.switchScreen = async (screenName, opts) => {
-  currentScreen.dispose();
+  await currentScreen.dispose();
   switch (screenName) {
     case "mainMenu":
       currentScreen = MainMenu;
@@ -24,20 +24,11 @@ window.switchScreen = async (screenName, opts) => {
   window.mouseDragged = currentScreen.mouseDown;
   window.mousePressed = currentScreen.mouseDown;
   window.mouseClicked = currentScreen.mouseClicked;
-  // TODO remove this
-  localStorage.setItem("currentScreen", screenName);
-  localStorage.setItem("opts", JSON.stringify(opts));
 };
 
-window.preload = async () => {
-  // TODO remove localStorage
-  switchScreen(
-    localStorage.getItem("currentScreen") || "mainMenu",
-    JSON.parse(localStorage.getItem("opts") || "{}")
-  );
+window.preload = () => {
+  switchScreen("mainMenu");
 };
-
-window.mouseWheel = () => {};
 
 window.setup = () => {
   createCanvas(windowWidth, windowHeight);
